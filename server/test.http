@@ -1,0 +1,37 @@
+### Sign UP
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "Narendra_kumar",
+  "bio": "Passionate frontend developer.",
+  "name": "Narendra Kumar",
+  "email": "Narendra@example.com",
+  "password": "Test@123"
+}
+
+### Sign IN
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "identity":"Narendra_kumar",
+  "password": "Test@123"
+}
+
+### ForgotPassword?
+POST http://localhost:3000/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "identity":"Narendra_kumar"
+}
+### ResetPassword
+POST http://localhost:3000/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "reset_token":"token"
+  "password":"password"
+  "confirmPassword":"password"
+}
