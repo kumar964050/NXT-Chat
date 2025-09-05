@@ -1,11 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 
 // TODO : implement errors for both Prod : dev mode here
-export default (err, req: Request, res: Response, next: NextFunction) => {
-  // developer errors
-  //
-  // prod errors
-  //
+
+const ErrorHandler: ErrorRequestHandler = (
+  err,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   console.log(err);
   console.log(err.message);
 
@@ -14,3 +16,5 @@ export default (err, req: Request, res: Response, next: NextFunction) => {
     message: err.message || "server error",
   });
 };
+
+export default ErrorHandler;
