@@ -51,4 +51,10 @@
   --color-sidebar-accent-foreground: #2b303a;
   --color-sidebar-border: #dbe1e9;
   --color-sidebar-ring: #7c3bec;
+
+  --shadow-chat: 0 2px 8px #12151814;
+
+  --background-image-gradient-bg: linear-gradient(135deg, #f7f9fb, #f1f5f9);
+  --background-image-gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 68%));
+  --background-image-gradient-accent: linear-gradient(135deg, hsl(174 62% 47%), hsl(174 62% 57%));
 }
