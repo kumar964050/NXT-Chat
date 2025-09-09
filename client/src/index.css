@@ -1,1 +1,54 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --color-background: #f5f7f9;
+  --color-foreground: #13151a;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #13151a;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #13151a;
+
+  --color-primary: #7c3bec;
+  --color-primary-foreground: #ffffff;
+  --color-primary-glow: #9b69f1;
+
+  --color-secondary: #ebeff3;
+  --color-secondary-foreground: #2b303a;
+
+  --color-muted: #e5e9ef;
+  --color-muted-foreground: #697181;
+
+  --color-accent: #2dc2b3;
+  --color-accent-foreground: #ffffff;
+
+  --color-destructive: #db143c;
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #dbe1e9;
+  --color-input: #ebeff3;
+  --color-ring: #7c3bec;
+
+  --color-chat-bubble-sent: #7c3bec;
+  --color-chat-bubble-sent-foreground: #ffffff;
+  --color-chat-bubble-received: #ffffff;
+  --color-chat-bubble-received-foreground: #13151a;
+
+  --color-online-status: #4add80;
+  --color-offline-status: #697181;
+  --color-typing-status: #e7af08;
+
+  --color-chat-header: #7c3bec;
+  --color-chat-sidebar: #f5f7f9;
+  --color-chat-input: #ffffff;
+
+  --color-sidebar-background: #f5f7f9;
+  --color-sidebar-foreground: #2b303a;
+  --color-sidebar-primary: #7c3bec;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #e5e9ef;
+  --color-sidebar-accent-foreground: #2b303a;
+  --color-sidebar-border: #dbe1e9;
+  --color-sidebar-ring: #7c3bec;
+}
