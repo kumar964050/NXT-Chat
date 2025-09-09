@@ -42,7 +42,6 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 const login = async (req: Request, res: Response, next: NextFunction) => {
   const findUser = await User.findOne({
     $or: [{ username: req.body.identity }, { email: req.body.identity }],
-    //    is_deleted: false,
   }).select("+password");
 
   if (!findUser) {
