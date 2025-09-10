@@ -1,35 +1,70 @@
 import { useState } from 'react';
+//
 import { Link, useNavigate } from 'react-router-dom';
-
+import Cookies from 'js-cookie';
+// components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// icons
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+// types
+import { UserWithTokenResponse } from '@/types';
+// apis
+import AuthApis from '@/apis/auth';
+// hooks
 import { useToast } from '@/hooks/use-toast';
+import useAuth from '@/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('john@example.com');
-  const [password, setPassword] = useState('password');
+  const [password, setPassword] = useState('Test@123');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const isLoading = false;
   const { toast } = useToast();
+  const { handleAddUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsLoading(true);
     try {
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+      const data: UserWithTokenResponse = await AuthApis.login({
+        identity: email.toLowerCase().trim(),
+        password: password,
       });
-      navigate('/');
+
+      if (data.status === 'success') {
+        // adding in auth context
+        Cookies.set('token', data.token, { expires: 7 });
+        handleAddUser(data.data.user);
+
+        toast({
+          title: 'Welcome back!',
+          description: 'You have successfully logged in.',
+        });
+
+        // move app after 1.3 seconds
+        setTimeout(() => {
+          navigate('/app/chat');
+        }, 1300);
+      } else {
+        toast({
+          title: 'Login failed',
+          description: data.message as string,
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Login failed',
-        description: error as string,
+        description: error.message as string,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -37,8 +72,8 @@ const Login = () => {
     <div className="flex items-center justify-center">
       <Card className="w-full max-w-md shadow-chat border-border">
         <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary-foreground">C</span>
+          <div className="lg:hidden w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
+            <span className="text-2xl font-bold text-primary-foreground">N</span>
           </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue chatting</CardDescription>

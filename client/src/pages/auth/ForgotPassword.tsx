@@ -6,27 +6,41 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FiMail, FiArrowLeft, FiLock } from 'react-icons/fi';
 import { useToast } from '@/hooks/use-toast';
+import { BaseResponse } from '@/types';
+import AuthApis from '@/apis/auth';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
-      setIsSubmitted(true);
-      toast({
-        title: 'Reset link sent!',
-        description: 'Check your email for password reset instructions.',
-      });
+      const data: BaseResponse = await AuthApis.forgotPassword(email);
+      if (data.status === 'success') {
+        setIsSubmitted(true);
+        toast({
+          title: 'Reset link sent!',
+          description: 'Check your email for password reset instructions.',
+        });
+      } else {
+        toast({
+          title: 'Forgot password failed',
+          description: data.message as string,
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Error',
-        description: error as string,
+        description: error.message as string,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,7 +83,7 @@ const ForgotPassword = () => {
     <div className="min-h-screen bg-gradient-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-chat border-border">
         <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
+          <div className="lg:hidden w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
             <FiLock className="h-8 w-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
@@ -104,7 +118,7 @@ const ForgotPassword = () => {
           </form>
           <div className="text-center">
             <Link
-              to="/login"
+              to="/auth/login"
               className="inline-flex items-center text-primary hover:underline text-sm"
             >
               <FiArrowLeft className="mr-2 h-4 w-4" />

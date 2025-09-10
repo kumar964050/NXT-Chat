@@ -19,15 +19,16 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     return next(new CustomError(ERROR_MESSAGES.USER_ALREADY_EXISTS, 400));
   }
 
-  console.log(findUser);
-
-  const newUser = await User.create(req.body);
+  const newUser = await User.create({
+    ...req.body,
+    name: req.body.email.split("@")[0],
+  });
 
   // sending welcome mail to shop owner
   await emailService.sendWelcomeEmail(newUser.email, req.body.ownerName);
 
   // remove password from the response
-  const { password, ...userData } = newUser.toObject();
+  const { password, forgotPassword, ...userData } = newUser.toObject();
   const token = newUser.generateAuthToken();
 
   res.status(201).json({
@@ -90,9 +91,10 @@ const forgotPassword = async (
     user.forgotPassword = { token, expiry };
     await user.save();
 
-    const url = `${process.env.CLIENT_URL}/reset-password`;
+    const url = `${process.env.CLIENT_URL}/auth/reset-password`;
     const link = url + `?token=${token}`;
     await emailService.resetPasswordEmail(user.email, user.name, link);
+    console.log(link);
     res.json({
       status: "success",
       message: "successfully send reset link to email id",

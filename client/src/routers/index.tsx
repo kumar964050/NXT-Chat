@@ -27,6 +27,7 @@ export const router = createBrowserRouter([
         path: '/auth',
         element: <AuthLayout />,
         children: [
+          { index: true, element: <Login /> },
           { path: 'login', element: <Login /> },
           { path: 'register', element: <Register /> },
           { path: 'forgot-password', element: <ForgotPassword /> },
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
         path: '/app',
         element: <ProtectedLayout />,
         children: [
+          {
+            index: true,
+            element: <h1>Home App</h1>,
+          },
           // Chat Routes
           {
             path: 'chat',

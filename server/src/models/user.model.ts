@@ -37,7 +37,7 @@ const UserSchema = new Schema<IUser>(
       trim: true,
     },
     name: { type: String, required: true, trim: true },
-    bio: { type: String, required: true, trim: true },
+    bio: { type: String, trim: true, default: "Hey!..." },
     password: { type: String, required: true, select: false },
     is_deleted: { type: Boolean, default: false },
     is_verified: { type: Boolean, default: false },

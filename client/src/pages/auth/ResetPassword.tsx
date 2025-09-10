@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import { useToast } from '@/hooks/use-toast';
+import { BaseResponse } from '@/types';
+import AuthApis from '@/apis/auth';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -17,11 +19,12 @@ const ResetPassword = () => {
   const token = searchParams.get('token') || '';
 
   const navigate = useNavigate();
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (password !== confirmPassword) {
       toast({
@@ -42,17 +45,30 @@ const ResetPassword = () => {
     }
 
     try {
-      toast({
-        title: 'Password reset successful!',
-        description: 'You can now sign in with your new password.',
-      });
-      navigate('/login');
+      const data: BaseResponse = await AuthApis.resetPassword(token, password);
+      if (data.status === 'success') {
+        toast({
+          title: 'Password reset successful!',
+          description: 'You can now sign in with your new password.',
+        });
+        setTimeout(() => {
+          navigate('/auth/login');
+        }, 1300);
+      } else {
+        toast({
+          title: 'Resetting password failed',
+          description: data.message as string,
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Reset failed',
-        description: error as string,
+        description: error.message as string,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,7 +76,7 @@ const ResetPassword = () => {
     <div className=" flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-chat border-border">
         <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
+          <div className="lg:hidden w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">
             <FiLock className="h-8 w-8 text-primary-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
