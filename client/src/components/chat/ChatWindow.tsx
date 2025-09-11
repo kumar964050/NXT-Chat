@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { FiSend, FiCheck } from 'react-icons/fi';
 import { HiCheckCircle } from 'react-icons/hi';
 import { isToday, isYesterday, format } from 'date-fns';
-import { Message } from '@/types';
+import { Message, messagesResponse } from '@/types';
 import useAuth from '@/hooks/useAuth';
 import { useParams } from 'react-router-dom';
 import MediaUpload from './MediaUpload';
@@ -19,22 +19,22 @@ import Cookies from 'js-cookie';
 const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  // const [isTyping, setIsTyping] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { userDetails: currentUser } = useAuth();
   const { chatId: activeChat } = useParams();
   const token = Cookies.get('token');
 
-  // get messages from server
+  // Getting msgs from server first time
   useEffect(() => {
     if (!activeChat || !currentUser) return;
     (async () => {
-      const data = await msgAPis.getMsgs(token, currentUser._id, activeChat);
+      const data = await msgAPis.getMsgs(token, activeChat);
       if (data.status === 'success') {
         setMessages(data.data.messages);
       }
     })();
-  }, [token, activeChat, currentUser]);
+  }, [activeChat, currentUser]);
 
   // scrolling to bottom after getting msgs from server
   useEffect(() => {

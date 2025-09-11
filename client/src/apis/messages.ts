@@ -8,8 +8,8 @@ const addMsg = (token, data: Message) =>
     body: JSON.stringify(data),
   });
 
-const getMsgs = (token: string, from: string, to: string) =>
-  apiFetch<messagesResponse>(`/messages?from=${from}&&to=${to}`, {
+const getMsgs = (token: string, chatId: string) =>
+  apiFetch<messagesResponse>(`/messages?chatId=${chatId}`, {
     method: 'GET',
     token,
   });

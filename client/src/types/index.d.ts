@@ -61,5 +61,6 @@ export interface UserWithTokenResponse extends BaseResponse {
 export interface messagesResponse extends BaseResponse {
   data: {
     messages: Message[];
+    hasMore: boolean;
   };
 }

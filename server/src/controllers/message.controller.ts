@@ -2,6 +2,7 @@ import { AuthRequest } from "../types";
 import { Response, NextFunction } from "express";
 import CustomError from "../utils/CustomError";
 import Messages from "../models/message.model";
+import mongoose from "mongoose";
 
 // import User from "../models/user.model";
 // import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
@@ -23,19 +24,24 @@ const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
     return next(new CustomError("Un Authorization error", 400));
   }
-  const { from, to } = req.query;
-  const getMessages = await Messages.find({
+
+  const chatId = String(req.query.chatId || "");
+
+  if (!chatId) return res.status(400).json({ error: "chatId required" });
+
+  const query: any = {
     $or: [
-      { from: from, to: to },
-      { to: from, from: to },
+      { from: req.user._id, to: chatId },
+      { to: req.user._id, from: chatId },
     ],
-  });
-  // sorting here
+  };
+
+  const messages = await Messages.find(query);
 
   res.json({
     status: "success",
     message: "get messages successfully",
-    data: { messages: getMessages },
+    data: { messages },
   });
 };
 
