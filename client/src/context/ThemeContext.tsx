@@ -31,7 +31,22 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   }, [theme]);
 
   // change theme
-  const handleChangeTheme = (theme) => setTheme(theme);
+  const handleChangeTheme = (theme) => {
+    const root = window.document.documentElement;
+    // remove existing theme
+    root.classList.remove('light', 'dark');
+    // remove all theme classes
+
+    //  if selected system defaulted theme
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+      root.classList.add(systemTheme);
+    } else {
+      root.classList.add(theme);
+    }
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, handleChangeTheme }}>{children}</ThemeContext.Provider>

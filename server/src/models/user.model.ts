@@ -8,7 +8,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  is_deleted: boolean;
+  is_active: boolean;
   is_verified: boolean;
   last_seen: Date;
   image: { url: string | null | undefined; id: string | null | undefined };
@@ -39,7 +39,7 @@ const UserSchema = new Schema<IUser>(
     name: { type: String, required: true, trim: true },
     bio: { type: String, trim: true, default: "Hey!..." },
     password: { type: String, required: true, select: false },
-    is_deleted: { type: Boolean, default: false },
+    is_active: { type: Boolean, default: true },
     is_verified: { type: Boolean, default: false },
     image: {
       id: { type: String, default: null },
@@ -49,7 +49,7 @@ const UserSchema = new Schema<IUser>(
       expiry: { type: Date, default: null },
       token: { type: String, default: null },
     },
-    last_seen: { type: Date },
+    last_seen: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

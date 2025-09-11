@@ -80,7 +80,7 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-bg flex items-center justify-center p-4">
+    <div className=" flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-chat border-border">
         <CardHeader className="text-center space-y-4">
           <div className="lg:hidden w-16 h-16 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">

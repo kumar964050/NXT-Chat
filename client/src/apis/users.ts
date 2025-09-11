@@ -1,12 +1,19 @@
 import { apiFetch } from './index';
-import { LoginResponse } from '@/types';
+import { UsersResponse, UserResponse } from '@/types';
+
+const getUsers = (token: string) =>
+  apiFetch<UsersResponse>('/users', {
+    method: 'GET',
+    token,
+  });
 
 const me = (token: string) =>
-  apiFetch<LoginResponse>('/users/me', {
+  apiFetch<UserResponse>('/users/me', {
     method: 'GET',
     token,
   });
 
 export default {
+  getUsers,
   me,
 };

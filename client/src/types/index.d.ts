@@ -10,8 +10,31 @@ export interface User {
   };
   is_deleted: boolean;
   is_verified: boolean;
+  last_seen: Date;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Message {
+  id: string;
+  type: 'text' | 'image' | 'video' | 'audio' | 'document' | 'location';
+  from: string;
+  to: string;
+  content: string;
+  attachment?: {
+    id: string;
+    url: string;
+    name: string;
+    size: number;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  status: 'sending' | 'sent' | 'delivered' | 'read';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface BaseResponse {
@@ -23,9 +46,20 @@ export interface UserResponse extends BaseResponse {
     user: User;
   };
 }
+export interface UsersResponse extends BaseResponse {
+  data: {
+    users: User[];
+  };
+}
 export interface UserWithTokenResponse extends BaseResponse {
   token: string;
   data: {
     user: User;
+  };
+}
+
+export interface messagesResponse extends BaseResponse {
+  data: {
+    messages: Message[];
   };
 }

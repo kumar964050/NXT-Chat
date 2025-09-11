@@ -58,3 +58,69 @@
   --background-image-gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 68%));
   --background-image-gradient-accent: linear-gradient(135deg, hsl(174 62% 47%), hsl(174 62% 57%));
 }
+
+.dark {
+  /* Modern dark theme */
+  --color-background: #09090b;
+  --color-foreground: #e4e4e7;
+
+  --color-card: #09090b;
+  --color-card-foreground: #e4e4e7;
+
+  --color-popover: #09090b;
+  --color-popover-foreground: #e4e4e7;
+
+  --color-primary: #6d28d9;
+  --color-primary-foreground: #e4e4e7;
+  --color-primary-glow: #8540e6;
+
+  --color-secondary: #1e1e2e;
+  --color-secondary-foreground: #e4e4e7;
+
+  --color-muted: #1e1e2e;
+  --color-muted-foreground: #9ca3af;
+
+  --color-accent: #10b981;
+  --color-accent-foreground: #ffffff;
+
+  --color-destructive: #e11d48;
+  --color-destructive-foreground: #e4e4e7;
+
+  --color-border: #1e1e2e;
+  --color-input: #1e1e2e;
+  --color-ring: #6d28d9;
+
+  /* Chat specific colors */
+  --color-chat-bubble-sent: #6d28d9;
+  --color-chat-bubble-sent-foreground: #e4e4e7;
+  --color-chat-bubble-received: #1e1e2e;
+  --color-chat-bubble-received-foreground: #e4e4e7;
+
+  --color-online-status: #4ade80;
+  --color-offline-status: #9ca3af;
+  --color-typing-status: #eab308;
+
+  --color-chat-header: #09090b;
+  --color-chat-sidebar: #09090b;
+  --color-chat-input: #1e1e2e;
+
+  /* Gradients */
+  --background-image-gradient-primary: linear-gradient(135deg, #6d28d9, #8540e6);
+  --background-image-gradient-accent: linear-gradient(135deg, #10b981, #34d399);
+  --background-image-gradient-bg: linear-gradient(135deg, #09090b, #1e1e2e);
+
+  /* Shadows */
+  --shadow-chat: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-bubble: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-header: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* Sidebar */
+  --color-sidebar-background: #09090b;
+  --color-sidebar-foreground: #e4e4e7;
+  --color-sidebar-primary: #6d28d9;
+  --color-sidebar-primary-foreground: #e4e4e7;
+  --color-sidebar-accent: #1e1e2e;
+  --color-sidebar-accent-foreground: #e4e4e7;
+  --color-sidebar-border: #1e1e2e;
+  --color-sidebar-ring: #6d28d9;
+}

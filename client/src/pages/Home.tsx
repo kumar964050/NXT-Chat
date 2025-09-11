@@ -42,7 +42,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-bg">
+    <div className="min-h-screen bg-gradient-bg text-foreground">
       {/* SEO Meta Tags */}
       <header>
         <title>Nxt-Chat - Modern Messaging App for Seamless Communication</title>

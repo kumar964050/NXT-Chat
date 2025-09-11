@@ -1,18 +1,26 @@
-// src/layouts/ProtectedLayout.tsx
-import { FC } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { FC, ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 
-const ProtectedLayout: FC = () => {
-  const { isAuthenticated } = useAuth();
+interface ProtectedLayoutProps {
+  children: ReactNode;
+}
 
-  // if not authenticated then move to login page
+const ProtectedLayout: FC<ProtectedLayoutProps> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  // If not authenticated, redirect to login and remember where user wanted to go
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/auth/login" replace state={{ from: location }} />;
   }
 
-  // if authenticated user then give access to content
-  return <Outlet />;
+  // Authenticated → render children
+  return (
+    <>
+      <div>{children}</div>
+    </>
+  );
 };
 
 export default ProtectedLayout;

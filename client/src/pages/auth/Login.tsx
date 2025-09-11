@@ -48,7 +48,7 @@ const Login = () => {
 
         // move app after 1.3 seconds
         setTimeout(() => {
-          navigate('/app/chat');
+          navigate('/app');
         }, 1300);
       } else {
         toast({
