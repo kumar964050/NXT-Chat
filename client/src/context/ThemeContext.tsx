@@ -1,7 +1,7 @@
 // src/context/ThemeContext.tsx
 import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
 // will add more theme here
 
 interface ThemeContextType {
@@ -15,8 +15,10 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
+const defaultTheme = localStorage.getItem('theme') as Theme;
+
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
 
   // Optional: load theme from localStorage
   useEffect(() => {
@@ -24,20 +26,10 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
     if (savedTheme) setTheme(savedTheme);
   }, []);
 
-  // save in localstorage
+  // change theme &  save in localstorage
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // change theme
-  const handleChangeTheme = (theme) => {
     const root = window.document.documentElement;
-    // remove existing theme
-    root.classList.remove('light', 'dark');
-    // remove all theme classes
-
-    //  if selected system defaulted theme
+    root.classList.remove('light', 'dark', 'system');
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
@@ -46,6 +38,12 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
     } else {
       root.classList.add(theme);
     }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // change theme
+  const handleChangeTheme = (theme) => {
+    setTheme(theme);
   };
 
   return (

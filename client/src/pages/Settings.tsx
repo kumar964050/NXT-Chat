@@ -120,14 +120,14 @@ const Settings = () => {
                     <SelectItem value="light">Light</SelectItem>
                     <SelectItem value="dark">Dark</SelectItem>
                     <SelectItem value="system">System</SelectItem>
-                    <SelectItem value="ocean">Ocean</SelectItem>
+                    {/* <SelectItem value="ocean">Ocean</SelectItem>
                     <SelectItem value="sunset">Sunset</SelectItem>
                     <SelectItem value="forest">Forest</SelectItem>
                     <SelectItem value="royal">Royal</SelectItem>
                     <SelectItem value="emerald">Emerald</SelectItem>
                     <SelectItem value="crimson">Crimson</SelectItem>
                     <SelectItem value="midnight">Midnight</SelectItem>
-                    <SelectItem value="gold">Gold</SelectItem>
+                    <SelectItem value="gold">Gold</SelectItem> */}
                   </SelectContent>
                 </Select>
               </div>
