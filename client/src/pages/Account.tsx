@@ -156,6 +156,11 @@ const Account = () => {
         });
       }
     } catch (error) {
+      toast({
+        title: 'Failed Remove ',
+        description: error.message,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +193,7 @@ const Account = () => {
               </Avatar>
               <Button
                 size="sm"
-                className="absolute -bottom-2 -right-2 rounded-full bg-gradient-primary"
+                className="absolute cursor-pointer -bottom-2 -right-2 rounded-full bg-gradient-primary"
                 onClick={handleImageSelect}
                 disabled={isLoading}
               >

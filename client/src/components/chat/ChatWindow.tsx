@@ -260,7 +260,7 @@ const ChatWindow = () => {
             <div key={date}>
               {/* Date Header */}
               <div className="flex justify-center mb-4">
-                <div className="bg-secondary px-3 py-1 rounded-full">
+                <div className="bg-secondary px-3 pb-1 rounded-full">
                   <span className="text-xs font-medium text-secondary-foreground">
                     {formatDateHeader(date)}
                   </span>
