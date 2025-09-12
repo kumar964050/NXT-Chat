@@ -61,6 +61,30 @@ export interface UserWithTokenResponse extends BaseResponse {
 export interface messagesResponse extends BaseResponse {
   data: {
     messages: Message[];
-    hasMore: boolean;
   };
+}
+export interface messageResponse extends BaseResponse {
+  data: {
+    message: Message;
+  };
+}
+
+interface fileUploadResponse {
+  id: string;
+  url: string;
+  name: string;
+  size: number;
+  type: 'text' | 'image' | 'video' | 'audio' | 'document' | 'location';
+}
+
+export interface UploadedFile {
+  name: string;
+  data: Buffer;
+  size: number;
+  encoding: string;
+  tempFilePath: string;
+  truncated: boolean;
+  mimetype: string;
+  md5: string;
+  mv: (savePath: string, callback: (err: any) => void) => void;
 }

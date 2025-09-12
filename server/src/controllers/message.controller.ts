@@ -1,11 +1,9 @@
-import { AuthRequest } from "../types";
+import { AuthRequest, AuthFileRequest } from "../types";
 import { Response, NextFunction } from "express";
 import CustomError from "../utils/CustomError";
 import Messages from "../models/message.model";
-import mongoose from "mongoose";
 
-// import User from "../models/user.model";
-// import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
+import { uploadSingleFile } from "../config/cloudinary";
 
 //  add new msg
 const addMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -17,6 +15,28 @@ const addMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
     status: "success",
     message: "message added successfully",
     data: { message: newMsg },
+  });
+};
+const uploadFileMsg = async (
+  req: AuthFileRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
+
+  if (!req.files || !req.files?.file) {
+    return next(new CustomError("Please provide file", 400));
+  }
+
+  const dirname = `messages/${req.body.type}`;
+  const data = await uploadSingleFile(req.files.file as any, dirname);
+
+  res.json({
+    status: "success",
+    message: "file uploaded successfully",
+    data: { file: data },
   });
 };
 
@@ -36,7 +56,7 @@ const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
     ],
   };
 
-  const messages = await Messages.find(query);
+  const messages = await Messages.find(query).sort({ createdAt: 1 });
 
   res.json({
     status: "success",
@@ -45,4 +65,4 @@ const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
   });
 };
 
-export default { addMsg, getMsg };
+export default { addMsg, uploadFileMsg, getMsg };

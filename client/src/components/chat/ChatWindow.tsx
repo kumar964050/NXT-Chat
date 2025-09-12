@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { FiSend, FiCheck } from 'react-icons/fi';
 import { HiCheckCircle } from 'react-icons/hi';
 import { isToday, isYesterday, format } from 'date-fns';
-import { Message, messagesResponse } from '@/types';
+import { fileUploadResponse, Message, messageResponse, messagesResponse } from '@/types';
 import useAuth from '@/hooks/useAuth';
 import { useParams } from 'react-router-dom';
 import MediaUpload from './MediaUpload';
@@ -14,6 +14,7 @@ import ChatHeader from './ChatHeader';
 
 import msgAPis from '@/apis/messages';
 import Cookies from 'js-cookie';
+import { useToast } from '@/hooks/use-toast';
 
 // sendMessage, fetchMessages activeChat, chats
 const ChatWindow = () => {
@@ -23,13 +24,15 @@ const ChatWindow = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { userDetails: currentUser } = useAuth();
   const { chatId: activeChat } = useParams();
+  const { toast } = useToast();
   const token = Cookies.get('token');
 
   // Getting msgs from server first time
   useEffect(() => {
     if (!activeChat || !currentUser) return;
     (async () => {
-      const data = await msgAPis.getMsgs(token, activeChat);
+      const token = Cookies.get('token');
+      const data: messagesResponse = await msgAPis.getMsgs(token, activeChat);
       if (data.status === 'success') {
         setMessages(data.data.messages);
       }
@@ -45,6 +48,32 @@ const ChatWindow = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // file msg send
+  const handleFileUploadMsg = async (file: fileUploadResponse) => {
+    const msg: Message = {
+      id: crypto.randomUUID(),
+      type: file.type,
+      from: currentUser._id,
+      to: activeChat,
+      content: newMessage || file.name,
+      attachment: { id: file.id, url: file.url, name: file.name, size: file.size },
+      status: 'sent',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const data: messageResponse = await msgAPis.addMsg(token, msg);
+    if (data.status === 'success') {
+      setMessages((prev) => {
+        return [...prev, msg];
+      });
+      setNewMessage('');
+      toast({
+        title: 'File sent',
+        description: `${file.type} has been sent successfully.`,
+      });
+    }
+  };
+  // text msg send
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeChat) return;
@@ -56,18 +85,49 @@ const ChatWindow = () => {
       to: activeChat,
       content: newMessage,
       status: 'sent',
-      createdAt: new Date('2025-09-11T10:00:00Z'),
-      updatedAt: new Date('2025-09-11T10:00:00Z'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const data = await msgAPis.addMsg(token, msg);
-    console.log(data);
+    const data: messageResponse = await msgAPis.addMsg(token, msg);
+    if (data.status === 'success') {
+      setMessages((prev) => {
+        return [...prev, msg];
+      });
+      setNewMessage('');
+    }
+  };
+  //  share location
+  const handleLocationShareMsg = async (latitude: number, longitude: number) => {
+    const msg: Message = {
+      id: crypto.randomUUID(),
+      type: 'location',
+      from: currentUser._id,
+      to: activeChat,
+      content: newMessage || 'location',
+      attachment: {
+        id: crypto.randomUUID(),
+        url: `https://www.google.com/maps?q=${latitude},${longitude}`,
+        name: 'location',
+        size: 0,
+      },
+      location: { latitude, longitude, address: 'location' },
+      status: 'sent',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
 
-    // dispatch(sendMessage(messageData));
-    setMessages((prev) => {
-      return [...prev, msg];
-    });
-    setNewMessage('');
+    const data: messageResponse = await msgAPis.addMsg(token, msg);
+    if (data.status === 'success') {
+      setMessages((prev) => {
+        return [...prev, msg];
+      });
+      setNewMessage('');
+      toast({
+        title: 'Location sent',
+        description: 'Your location has been shared.',
+      });
+    }
   };
 
   const formatMessageTime = (timestamp: Date) => {
@@ -113,12 +173,12 @@ const ChatWindow = () => {
       case 'image':
         return (
           <div className="space-y-2">
-            {message.fileUrl && (
+            {message.attachment && (
               <img
-                src={message.fileUrl}
+                src={message.attachment.url}
                 alt="Shared image"
                 className="max-w-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(message.fileUrl, '_blank')}
+                onClick={() => window.open(message.attachment.url, '_blank')}
               />
             )}
             {message.content && <p className="text-sm break-words">{message.content}</p>}
@@ -127,29 +187,42 @@ const ChatWindow = () => {
       case 'video':
         return (
           <div className="space-y-2">
-            {message.fileUrl && (
-              <video src={message.fileUrl} controls className="max-w-48 rounded-lg" />
+            {message.attachment.url && (
+              <video src={message.attachment.url} controls className="max-w-48 rounded-lg" />
             )}
             {message.content && <p className="text-sm break-words">{message.content}</p>}
           </div>
         );
       case 'document':
         return (
-          <div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg max-w-48">
+          <a
+            href={message.attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg max-w-48"
+          >
             <div className="w-6 h-6 bg-primary/10 rounded flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-medium">📄</span>
             </div>
             <span className="text-sm truncate">{message.content}</span>
-          </div>
+          </a>
         );
       case 'location':
         return (
-          <div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg max-w-48">
-            <div className="w-6 h-6 bg-accent/10 rounded flex items-center justify-center flex-shrink-0">
-              <span className="text-xs">📍</span>
-            </div>
+          <a
+            href={message.attachment.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg max-w-48"
+          >
+            <img
+              src={`https://maps.googleapis.com/maps/api/staticmap?center=${message.location.latitude},${message.location.longitude}&zoom=15&size=200x100&markers=color:red|${message.location.latitude},${message.location.longitude}&key=${import.meta.env.VITE_G_MAP_KEY}`}
+              alt="map"
+              className="rounded"
+            />
+            <span className="text-sm text-primary truncate">📍</span>
             <span className="text-sm truncate">{message.content}</span>
-          </div>
+          </a>
         );
       default:
         return <p className="text-sm leading-normal break-words">{message.content}</p>;
@@ -248,7 +321,10 @@ const ChatWindow = () => {
         {/* Message Input */}
         <div className="border-t border-border p-4 text-foreground bg-chat-input">
           <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-            <MediaUpload chatId={activeChat} />
+            <MediaUpload
+              handleFileUploadMsg={handleFileUploadMsg}
+              handleLocationShareMsg={handleLocationShareMsg}
+            />
 
             <div className="flex-1 relative">
               <Input

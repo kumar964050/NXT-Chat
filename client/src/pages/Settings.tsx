@@ -75,7 +75,7 @@ const Settings = () => {
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to logout. Please try again.',
+        description: error.message as string,
         variant: 'destructive',
       });
     }

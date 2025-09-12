@@ -3,7 +3,8 @@ import CustomError from "../utils/CustomError";
 import User from "../models/user.model";
 
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
-import { AuthRequest } from "../types";
+import { AuthRequest, AuthFileRequest } from "../types";
+import { uploadSingleFile } from "../config/cloudinary";
 
 //  get me
 const getAllUsers = async (
@@ -61,5 +62,90 @@ const getMyProfile = async (
     data: { user },
   });
 };
+const updateUserDetails = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
 
-export default { getAllUsers, getUserById, getMyProfile };
+  const existingUser = await User.findOne({
+    _id: { $ne: req.user._id },
+    $or: [
+      { username: req.body.username.toLowerCase() },
+      { email: req.body.email.toLowerCase() },
+    ],
+  });
+
+  if (existingUser) {
+    const field =
+      existingUser.username === req.body.username.toLowerCase()
+        ? "Username"
+        : "Email";
+    return next(new CustomError(`${field} already exists`, 400));
+  }
+
+  req.user.name = req.body.name;
+  req.user.bio = req.body.bio;
+  req.user.username = req.body.username;
+  req.user.email = req.body.email;
+  await req.user.save();
+
+  res.json({
+    status: "success",
+    message: "updated user profile successfully",
+    data: { user: req.user },
+  });
+};
+const uploadProfileImage = async (
+  req: AuthFileRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
+
+  if (!req.files || !req.files?.profile) {
+    return next(new CustomError("Please provide profile image", 400));
+  }
+
+  const data = await uploadSingleFile(req.files.profile as any, "profile");
+
+  req.user.image = data;
+  await req.user.save();
+
+  res.json({
+    status: "success",
+    message: "profile image has been updated successfully",
+    data: { image: data },
+  });
+};
+const deleteAccount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
+
+  req.user.is_active = false;
+  await req.user.save();
+
+  res.json({
+    status: "success",
+    message: "Your Account Has been deleted successfully",
+  });
+};
+
+export default {
+  getAllUsers,
+  getUserById,
+  getMyProfile,
+  updateUserDetails,
+  uploadProfileImage,
+  deleteAccount,
+};

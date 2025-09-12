@@ -2,41 +2,49 @@ import { useState, useRef } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
-import { FiPaperclip, FiCamera, FiImage, FiFileText, FiMapPin, FiVideo } from 'react-icons/fi';
-import { useToast } from '../../hooks/use-toast';
+import { FiPaperclip, FiImage, FiFileText, FiMapPin, FiVideo } from 'react-icons/fi';
+import { useToast } from '@/hooks/use-toast';
+import { fileUploadResponse } from '@/types';
+import Cookies from 'js-cookie';
 
 interface MediaUploadProps {
-  chatId: string;
+  handleFileUploadMsg: (data: fileUploadResponse) => void;
+  handleLocationShareMsg: (latitude: number, longitude: number) => void;
 }
 
 // sendMessage;
-const MediaUpload = ({ chatId }: MediaUploadProps) => {
+const MediaUpload = ({ handleFileUploadMsg, handleLocationShareMsg }: MediaUploadProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
-  //   const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast();
 
-  const handleFileUpload = (file: File, type: 'image' | 'video' | 'document' | 'audio') => {
-    // Mock file upload - in real app, upload to server first
-    const fileUrl = URL.createObjectURL(file);
-
-    // dispatch(
-    //   sendMessage({
-    //     chatId,
-    //     content: file.name,
-    //     type,
-    //     fileUrl,
-    //   })
-    // );
-
-    toast({
-      title: 'File sent',
-      description: `${type} has been sent successfully.`,
-    });
-
+  const handleFileUpload = async (file: File, type: 'image' | 'video' | 'document' | 'audio') => {
+    const token = Cookies.get('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
     setIsOpen(false);
+    toast({
+      title: 'File sending...!',
+      description: `${type} is sending...`,
+    });
+    const url = `${import.meta.env.VITE_API_URL}/messages/file`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+
+    handleFileUploadMsg({
+      id: data.data.file.id,
+      url: data.data.file.url,
+      name: file.name,
+      size: file.size,
+      type,
+    });
   };
 
   const handleImageSelect = () => {
@@ -56,17 +64,8 @@ const MediaUpload = ({ chatId }: MediaUploadProps) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          //   dispatch(
-          //     sendMessage({
-          //       chatId,
-          //       content: `Location: ${latitude}, ${longitude}`,
-          //       type: 'location',
-          //     })
-          //   );
-          toast({
-            title: 'Location sent',
-            description: 'Your location has been shared.',
-          });
+          console.log(position.coords);
+          handleLocationShareMsg(latitude, longitude);
           setIsOpen(false);
         },
         () => {
@@ -75,7 +74,8 @@ const MediaUpload = ({ chatId }: MediaUploadProps) => {
             description: 'Unable to get your location.',
             variant: 'destructive',
           });
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       toast({
@@ -86,14 +86,14 @@ const MediaUpload = ({ chatId }: MediaUploadProps) => {
     }
   };
 
-  const handleCameraCapture = () => {
-    // Mock camera capture
-    toast({
-      title: 'Camera',
-      description: 'Camera feature would open here.',
-    });
-    setIsOpen(false);
-  };
+  // const handleCameraCapture = () => {
+  //   // Mock camera capture
+  //   toast({
+  //     title: 'Camera',
+  //     description: 'Camera feature would open here.',
+  //   });
+  //   setIsOpen(false);
+  // };
 
   return (
     <>
@@ -104,8 +104,8 @@ const MediaUpload = ({ chatId }: MediaUploadProps) => {
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-48 p-2" align="start">
-          <div className="space-y-1">
-            <Button
+          <div className="space-y-1 ">
+            {/* <Button
               variant="ghost"
               size="sm"
               className="w-full justify-start"
@@ -113,7 +113,7 @@ const MediaUpload = ({ chatId }: MediaUploadProps) => {
             >
               <FiCamera className="mr-2 h-4 w-4" />
               Camera
-            </Button>
+            </Button> */}
             <Button
               variant="ghost"
               size="sm"

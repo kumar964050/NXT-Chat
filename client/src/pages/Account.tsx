@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,15 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { FiArrowLeft, FiCamera, FiSave, FiTrash2 } from 'react-icons/fi';
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
+import UserApis from '@/apis/users';
+import Cookies from 'js-cookie';
+import { UserResponse } from '@/types';
 
 const Account = () => {
-  //   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { userDetails } = useAuth();
-  const isLoading = false;
+  const { userDetails, handleRemoveUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -31,26 +34,69 @@ const Account = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      //   await dispatch(updateProfile(formData)).unwrap();
-      toast({
-        title: 'Profile updated',
-        description: 'Your profile has been successfully updated.',
-      });
+      setIsLoading(true);
+      const token = Cookies.get('token');
+      const data: UserResponse = await UserApis.updateUserDetails(token, userDetails._id, formData);
+      if (data.status === 'success') {
+        toast({
+          title: 'Profile updated',
+          description: 'Your profile has been successfully updated.',
+        });
+      }
     } catch (error) {
       toast({
         title: 'Update failed',
-        description: error as string,
+        description: error.message as string,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleDeleteAccount = () => {
-    toast({
-      title: 'Feature not implemented',
-      description: 'Account deletion will be available in a future update.',
-      variant: 'destructive',
-    });
+  const handleImageSelect = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleUpdateProfileImage = async (file) => {
+    try {
+      const token = Cookies.get('token');
+      const formData = new FormData();
+      formData.append('profile', file);
+      const url = `${import.meta.env.VITE_API_URL}/users/${userDetails._id}/profile-image`;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      console.log(error.message);
+    } finally {
+      //
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const token = Cookies.get('token');
+    const data = await UserApis.deleteAccount(token, userDetails._id);
+    if (data.status === 'success') {
+      toast({
+        title: 'Account Deleted',
+        description: data.message,
+      });
+      setTimeout(() => {
+        handleRemoveUser();
+        navigate('/auth/login');
+      }, 1800);
+    } else {
+      toast({
+        title: 'Failed To delete Account',
+        description: data.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -85,9 +131,21 @@ const Account = () => {
                 <FiCamera className="h-3 w-3" />
               </Button>
             </div>
-            <div className="space-y-2">
-              <Button variant="outline">Change Photo</Button>
-              <Button variant="outline" className="text-destructive hover:text-primary-foreground">
+            <div className="space-y-2 space-x-1">
+              <Button variant="outline" className="cursor-pointer" onClick={handleImageSelect}>
+                Change Photo
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUpdateProfileImage(file);
+                  }}
+                />
+              </Button>
+              <Button variant="destructive" className="cursor-pointer hover:opacity-70">
                 Remove Photo
               </Button>
             </div>
@@ -106,8 +164,8 @@ const Account = () => {
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
-                    id="fullName"
-                    name="fullName"
+                    id="name"
+                    name="name"
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
