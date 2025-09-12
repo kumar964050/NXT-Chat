@@ -140,6 +140,23 @@ const deleteAccount = async (
     message: "Your Account Has been deleted successfully",
   });
 };
+const removeProfileImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
+
+  // will imp login here
+  // todo
+
+  res.json({
+    status: "success",
+    message: "Profile image has been removed successfully",
+  });
+};
 
 export default {
   getAllUsers,
@@ -148,4 +165,5 @@ export default {
   updateUserDetails,
   uploadProfileImage,
   deleteAccount,
+  removeProfileImage,
 };

@@ -31,10 +31,16 @@ const deleteAccount = (token, id: string) =>
     method: 'DELETE',
     token,
   });
+const removeProfileImage = (token, id: string) =>
+  apiFetch<BaseResponse>(`/users/${id}/profile-image`, {
+    method: 'DELETE',
+    token,
+  });
 
 export default {
   getUsers,
   me,
   updateUserDetails,
   deleteAccount,
+  removeProfileImage,
 };

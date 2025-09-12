@@ -15,7 +15,7 @@ import { UserResponse } from '@/types';
 
 const Account = () => {
   const navigate = useNavigate();
-  const { userDetails, handleRemoveUser } = useAuth();
+  const { userDetails, handleRemoveUser, handleAddUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -60,6 +60,11 @@ const Account = () => {
 
   const handleUpdateProfileImage = async (file) => {
     try {
+      setIsLoading(true);
+      toast({
+        title: 'Uploading... profile image',
+        description: 'Profile Image is Updating...',
+      });
       const token = Cookies.get('token');
       const formData = new FormData();
       formData.append('profile', file);
@@ -70,32 +75,89 @@ const Account = () => {
         body: formData,
       });
       const data = await res.json();
-      console.log(data);
+      if (data.status === 'success') {
+        handleAddUser({
+          ...userDetails,
+          image: data.data.image,
+        });
+        toast({
+          title: 'Profile Image',
+          description: data.message as string,
+        });
+      } else {
+        toast({
+          title: 'profile image upload failed',
+          description: data.message as string,
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
-      console.log(error.message);
+      toast({
+        title: 'profile image upload failed',
+        description: error.message as string,
+        variant: 'destructive',
+      });
     } finally {
-      //
+      setIsLoading(false);
     }
   };
 
   const handleDeleteAccount = async () => {
-    const token = Cookies.get('token');
-    const data = await UserApis.deleteAccount(token, userDetails._id);
-    if (data.status === 'success') {
-      toast({
-        title: 'Account Deleted',
-        description: data.message,
-      });
-      setTimeout(() => {
-        handleRemoveUser();
-        navigate('/auth/login');
-      }, 1800);
-    } else {
+    try {
+      const token = Cookies.get('token');
+      const data = await UserApis.deleteAccount(token, userDetails._id);
+      if (data.status === 'success') {
+        toast({
+          title: 'Account Deleted',
+          description: data.message,
+        });
+        setTimeout(() => {
+          handleRemoveUser();
+          navigate('/auth/login');
+        }, 1800);
+      } else {
+        toast({
+          title: 'Failed To delete Account',
+          description: data.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
       toast({
         title: 'Failed To delete Account',
-        description: data.message,
+        description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveProfileImage = async () => {
+    try {
+      setIsLoading(true);
+
+      const token = Cookies.get('token');
+      const data = await UserApis.removeProfileImage(token, userDetails._id);
+      if (data.status === 'success') {
+        handleAddUser({
+          ...userDetails,
+          image: { url: null, id: null },
+        });
+        toast({
+          title: 'Remove successfully',
+          description: data.message,
+        });
+      } else {
+        toast({
+          title: 'Failed Remove ',
+          description: data.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,12 +189,19 @@ const Account = () => {
               <Button
                 size="sm"
                 className="absolute -bottom-2 -right-2 rounded-full bg-gradient-primary"
+                onClick={handleImageSelect}
+                disabled={isLoading}
               >
                 <FiCamera className="h-3 w-3" />
               </Button>
             </div>
-            <div className="space-y-2 space-x-1">
-              <Button variant="outline" className="cursor-pointer" onClick={handleImageSelect}>
+            <div className="space-y-2 space-x-2">
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                onClick={handleImageSelect}
+                disabled={isLoading}
+              >
                 Change Photo
                 <input
                   ref={imageInputRef}
@@ -145,7 +214,11 @@ const Account = () => {
                   }}
                 />
               </Button>
-              <Button variant="destructive" className="cursor-pointer hover:opacity-70">
+              <Button
+                variant="destructive"
+                className="cursor-pointer hover:opacity-70"
+                onClick={handleRemoveProfileImage}
+              >
                 Remove Photo
               </Button>
             </div>
@@ -218,7 +291,7 @@ const Account = () => {
           </CardContent>
         </Card>
 
-        {/* Security */}
+        {/* Security pending */}
         <Card className="shadow-chat">
           <CardHeader>
             <CardTitle>Security</CardTitle>
@@ -241,7 +314,12 @@ const Account = () => {
             <CardDescription>Irreversible and destructive actions</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive" onClick={handleDeleteAccount} className="w-full">
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={handleDeleteAccount}
+              disabled={isLoading}
+            >
               <FiTrash2 className="mr-2 h-4 w-4" />
               Delete Account
             </Button>
