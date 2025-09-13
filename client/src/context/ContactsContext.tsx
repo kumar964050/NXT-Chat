@@ -1,4 +1,4 @@
-import { createContext, FC, ReactNode, useEffect, useState } from 'react';
+import { createContext, FC, ReactNode, useEffect, useState, useMemo } from 'react';
 
 import { User, Message } from '@/types';
 import Cookies from 'js-cookie';
@@ -72,7 +72,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
         return contact;
       })
     );
-    if (chatId !== msg.from && msg.from !== userDetails._id) {
+    if (chatId !== msg.from && msg.from !== userDetails?._id) {
       toast({
         title: '📩 Message received',
         description: 'you got a new message.',
@@ -80,8 +80,17 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
     }
   };
 
+  const sortedContacts = useMemo(() => {
+    return [...contacts].sort((a, b) => {
+      const aTime = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const bTime = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+
+      return bTime - aTime; // newest first
+    });
+  }, [contacts]);
+
   const values = {
-    contacts,
+    contacts: sortedContacts,
     loading,
     handleUserWentToOffline,
     handleUpdateLastMsg,
