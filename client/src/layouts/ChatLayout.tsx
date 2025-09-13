@@ -31,11 +31,12 @@ const ChatLayout: FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={userDetails?.image?.url} />
+                <AvatarImage className="object-cover" src={userDetails?.image?.url} />
                 <AvatarFallback className="bg-gradient-primary text-primary-foreground font-medium">
                   {userDetails?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
+
               <div className="min-w-0">
                 <h2 className="font-semibold text-sm text-primary-foreground truncate">
                   {userDetails?.name?.split(' ')[0] || 'User'}

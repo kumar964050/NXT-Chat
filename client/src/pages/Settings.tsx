@@ -106,7 +106,7 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <Label>Edit Profile</Label>
                 <Button variant="outline" asChild>
-                  <Link to="/account">Edit</Link>
+                  <Link to="/app/account">Edit</Link>
                 </Button>
               </div>
 

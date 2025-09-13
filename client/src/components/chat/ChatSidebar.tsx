@@ -96,7 +96,7 @@ const ChatSidebar = () => {
               >
                 <div className="relative">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={contact?.image?.url} />
+                    <AvatarImage className="object-cover" src={contact?.image?.url} />
                     <AvatarFallback className="bg-gradient-primary text-primary-foreground font-medium">
                       {contact?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -126,14 +126,16 @@ const ChatSidebar = () => {
                       {getLastMessagePreview(contact?.lastMessage)}
                     </p>
 
-                    {/* <div className="flex items-center gap-2">
-                      {10 > 0 && (
+                    <div className="flex items-center gap-2">
+                      {/* {10 > 0 && (
                         <Badge className="bg-primary text-primary-foreground text-xs px-2 py-1 min-w-5 h-5 rounded-full flex items-center justify-center">
                           {10 > 99 ? '99+' : 10}
                         </Badge>
+                      )} */}
+                      {contact?.lastMessage?.status !== 'read' && (
+                        <div className="w-2 h-2 bg-primary rounded-full" />
                       )}
-                      <div className="w-2 h-2 bg-primary rounded-full" />
-                    </div> */}
+                    </div>
                   </div>
                 </div>
               </div>

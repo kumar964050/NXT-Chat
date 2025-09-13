@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FiSend, FiCheck } from 'react-icons/fi';
-import { HiCheckCircle } from 'react-icons/hi';
+import { FiSend } from 'react-icons/fi';
 import { isToday, isYesterday, format } from 'date-fns';
 import { fileUploadResponse, Message, messageResponse, messagesResponse } from '@/types';
 import useAuth from '@/hooks/useAuth';
@@ -17,8 +15,11 @@ import Cookies from 'js-cookie';
 import { useToast } from '@/hooks/use-toast';
 import useSocket from '@/hooks/useSocket';
 import useContacts from '@/hooks/useContacts';
+import { v4 as uuidV4 } from 'uuid';
 
-// sendMessage, fetchMessages activeChat, chats
+import { BiCheckDouble } from 'react-icons/bi';
+import { IoCheckmarkDoneCircleOutline, IoCheckmarkOutline } from 'react-icons/io5';
+
 const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -52,10 +53,45 @@ const ChatWindow = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // file msg send also vth socket
+  // send msg api & socket
+  const handleSendMsg = async (msg: Message) => {
+    socket.emit('send-msg', msg);
+    handleUpdateLastMsg(msg);
+    const data: messageResponse = await msgAPis.addMsg(token, msg);
+    if (data.status === 'success') {
+      setMessages((prev) => [...prev, msg]);
+      setNewMessage('');
+      if (msg.type !== 'text') {
+        toast({
+          title: `${msg.type} sent`,
+          description: `${msg.type} has been sent successfully.`,
+        });
+      }
+    }
+  };
+
+  //01) text msg send also vth socket
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !activeChat) return;
+
+    const msg: Message = {
+      id: uuidV4(),
+      type: 'text',
+      from: currentUser._id,
+      to: activeChat,
+      content: newMessage,
+      status: 'sent',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    handleSendMsg(msg);
+  };
+
+  //02) file msg send also vth socket
   const handleFileUploadMsg = async (file: fileUploadResponse) => {
     const msg: Message = {
-      id: crypto.randomUUID(),
+      id: uuidV4(),
       type: file.type,
       from: currentUser._id,
       to: activeChat,
@@ -65,52 +101,13 @@ const ChatWindow = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    handleUpdateLastMsg(msg);
-
-    const data: messageResponse = await msgAPis.addMsg(token, msg);
-    if (data.status === 'success') {
-      socket.emit('send-msg', msg);
-      setMessages((prev) => {
-        return [...prev, msg];
-      });
-      setNewMessage('');
-      toast({
-        title: 'File sent',
-        description: `${file.type} has been sent successfully.`,
-      });
-    }
+    handleSendMsg(msg);
   };
-  // text msg send also vth socket
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !activeChat) return;
 
-    const msg: Message = {
-      id: crypto.randomUUID(),
-      type: 'text',
-      from: currentUser._id,
-      to: activeChat,
-      content: newMessage,
-      status: 'sent',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    socket.emit('send-msg', msg);
-
-    handleUpdateLastMsg(msg);
-    const data: messageResponse = await msgAPis.addMsg(token, msg);
-    if (data.status === 'success') {
-      setMessages((prev) => {
-        return [...prev, msg];
-      });
-      setNewMessage('');
-    }
-  };
-  //  share location also vth socket
+  //03)  share location also vth socket
   const handleLocationShareMsg = async (latitude: number, longitude: number) => {
     const msg: Message = {
-      id: crypto.randomUUID(),
+      id: uuidV4(),
       type: 'location',
       from: currentUser._id,
       to: activeChat,
@@ -126,20 +123,7 @@ const ChatWindow = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    handleUpdateLastMsg(msg);
-
-    const data: messageResponse = await msgAPis.addMsg(token, msg);
-    if (data.status === 'success') {
-      socket.emit('send-msg', msg);
-      setMessages((prev) => {
-        return [...prev, msg];
-      });
-      setNewMessage('');
-      toast({
-        title: 'Location sent',
-        description: 'Your location has been shared.',
-      });
-    }
+    handleSendMsg(msg);
   };
 
   const formatMessageTime = (timestamp: Date) => {
@@ -247,14 +231,14 @@ const ChatWindow = () => {
     switch (message.status) {
       case 'sending':
         return (
-          <div className="w-3 h-3 border border-muted-foreground rounded-full animate-pulse" />
+          <div className="w-4 h-4 border border-muted-foreground rounded-full animate-pulse" />
         );
       case 'sent':
-        return <FiCheck className="w-3 h-3 text-chat-bubble-sent-foreground" />;
+        return <IoCheckmarkOutline className="w-4 h-4 text-muted-foreground" />;
       case 'delivered':
-        return <HiCheckCircle className="w-3 h-3 text-muted-foreground" />;
+        return <BiCheckDouble className="w-4 h-4 text-muted-foreground" />;
       case 'read':
-        return <HiCheckCircle className="w-3 h-3 text-primary" />;
+        return <IoCheckmarkDoneCircleOutline className="w-4 h-4 text-online-status" />;
       default:
         return null;
     }
@@ -273,6 +257,12 @@ const ChatWindow = () => {
       socket.off('get-msg');
     };
   }, [socket, activeChat]);
+
+  // mark msgs status as read when open
+  useEffect(() => {
+    if (!socket || !activeChat || !currentUser) return;
+    socket.emit('mark-as-read-msgs', { from: activeChat, to: currentUser._id });
+  }, [socket, activeChat, currentUser]);
 
   return (
     <>
@@ -304,15 +294,6 @@ const ChatWindow = () => {
                       <div
                         className={`flex gap-2 max-w-[280px] sm:max-w-sm ${isFromMe ? 'flex-row-reverse' : 'flex-row'}`}
                       >
-                        {/* {!isFromMe && (
-                          <Avatar className="h-8 w-8 flex-shrink-0">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
-                              U
-                            </AvatarFallback>
-                          </Avatar>
-                        )} */}
-
                         <div
                           className={`rounded-2xl px-3 py-2 shadow-bubble ${
                             isFromMe

@@ -2,11 +2,12 @@ import "dotenv/config"; // Load environment variables
 import { Server, Socket } from "socket.io";
 import connectDB from "./config/database";
 import User from "./models/user.model";
+import Message from "./models/message.model";
 import app from "./app";
 
-const PORT = process.env.PORT || 3000;
-
-const server = app.listen(PORT, () => {
+const PORT: number = Number(process.env.PORT) || 3000;
+const HOST = "0.0.0.0";
+const server = app.listen(PORT, HOST, () => {
   console.log(`Server running at PORT : ${PORT}`);
 });
 
@@ -32,6 +33,11 @@ const addUser = async (userId: string, socketId: string) => {
   if (!activeUsers.some((user) => user.userId === userId)) {
     activeUsers.push({ userId: userId, socketId: socketId });
   }
+  // mark sent msg status as delivered coz user logged in
+  await Message.updateMany(
+    { to: userId, status: { $eq: "sent" } },
+    { status: "delivered" }
+  );
 };
 
 // get user id by socket id
@@ -72,6 +78,17 @@ io.on("connection", (socket: Socket) => {
       socket.to(toSocket).emit("get-msg", msg);
     }
   });
+
+  // mark msg status as a read when user open chat
+  socket.on(
+    "mark-as-read-msgs",
+    async ({ from, to }: { from: string; to: string }) => {
+      await Message.updateMany(
+        { from, to, status: { $ne: "read" } },
+        { $set: { status: "read" } }
+      );
+    }
+  );
 
   //02 remove user from active user arr list
   socket.on("disconnect", () => {

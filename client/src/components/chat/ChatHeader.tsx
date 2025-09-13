@@ -46,7 +46,7 @@ const ChatHeader = () => {
           <div className="relative">
             <Avatar className="h-10 w-10">
               <AvatarImage
-                className=" w-10 h-10 rounded-full bg-gradient-primary text-primary-foreground font-medium"
+                className="object-cover w-10 h-10 rounded-full bg-gradient-primary text-primary-foreground font-medium"
                 src={contact?.image?.url}
               />
               <AvatarFallback className="px-4 py-3 rounded-full bg-gradient-primary text-primary-foreground font-medium">

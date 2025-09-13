@@ -186,7 +186,7 @@ const Account = () => {
           <CardContent className="flex items-center gap-6">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={userDetails?.image?.url} />
+                <AvatarImage className="object-cover" src={userDetails?.image?.url} />
                 <AvatarFallback className="bg-gradient-primary text-primary-foreground text-2xl font-bold">
                   {userDetails?.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
