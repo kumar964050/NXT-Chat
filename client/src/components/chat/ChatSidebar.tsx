@@ -1,12 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { FiSearch, FiMoreVertical } from 'react-icons/fi';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import ApiUsers from '@/apis/users';
-import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import useSocket from '@/hooks/useSocket';

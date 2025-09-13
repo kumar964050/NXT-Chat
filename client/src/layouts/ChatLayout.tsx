@@ -1,15 +1,13 @@
 import { FC } from 'react';
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import ChatSidebar from '@/components/chat/ChatSidebar';
-// import ChatHeader from '@/components/chat/ChatHeader';
-// import ChatWindow from '@/components/chat/ChatWindow';
+
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
 import useAuth from '@/hooks/useAuth';
 
 const ChatLayout: FC = () => {
-  const { chatId: activeChat } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
@@ -41,7 +39,7 @@ const ChatLayout: FC = () => {
                 <h2 className="font-semibold text-sm text-primary-foreground truncate">
                   {userDetails?.name?.split(' ')[0] || 'User'}
                 </h2>
-                <p className="text-xs text-primary-foreground/70">Online</p>
+                {userDetails?.name?.trim()?.split(/\s+/)?.[0] || 'User'}
               </div>
             </div>
 

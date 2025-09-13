@@ -3,7 +3,6 @@ import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 import { User } from '@/types';
 import Cookies from 'js-cookie';
 import UserApis from '@/apis/users';
-import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
@@ -23,7 +22,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleAddUser = (user: User) => {

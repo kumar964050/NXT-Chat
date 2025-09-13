@@ -1,5 +1,5 @@
 import { apiFetch } from './index';
-import { User, BaseResponse, UserResponse, UserWithTokenResponse } from '@/types';
+import { BaseResponse, UserWithTokenResponse } from '@/types';
 
 // Login
 const login = (data: { identity: string; password: string }) =>

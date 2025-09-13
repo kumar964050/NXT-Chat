@@ -1,5 +1,5 @@
 import { apiFetch } from './index';
-import { messagesResponse, Message, messageResponse, UploadedFile } from '@/types';
+import { messagesResponse, Message, messageResponse } from '@/types';
 
 const addMsg = (token, data: Message) =>
   apiFetch<messageResponse>('/messages', {
