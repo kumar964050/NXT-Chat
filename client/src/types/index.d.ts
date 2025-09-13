@@ -87,5 +87,5 @@ export interface UploadedFile {
   truncated: boolean;
   mimetype: string;
   md5: string;
-  mv: (savePath: string, callback: (err) => void) => void;
+  mv: (savePath: string, callback: (err: Error | null) => void) => void;
 }

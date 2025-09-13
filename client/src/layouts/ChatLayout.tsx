@@ -37,9 +37,8 @@ const ChatLayout: FC = () => {
 
               <div className="min-w-0">
                 <h2 className="font-semibold text-sm text-primary-foreground truncate">
-                  {userDetails?.name?.split(' ')[0] || 'User'}
+                  {userDetails?.name?.trim()?.split(/\s+/)?.[0] || 'User'}
                 </h2>
-                {userDetails?.name?.trim()?.split(/\s+/)?.[0] || 'User'}
               </div>
             </div>
 
