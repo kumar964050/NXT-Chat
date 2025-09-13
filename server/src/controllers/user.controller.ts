@@ -1,10 +1,12 @@
 import { Response, NextFunction } from "express";
 import CustomError from "../utils/CustomError";
-import User from "../models/user.model";
+import User, { IUser } from "../models/user.model";
+import Message from "../models/message.model";
 
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
 import { AuthRequest, AuthFileRequest } from "../types";
 import { uploadSingleFile } from "../config/cloudinary";
+import mongoose from "mongoose";
 
 //  get me
 const getAllUsers = async (
@@ -16,16 +18,50 @@ const getAllUsers = async (
     return next(new CustomError("Un Authorization error", 400));
   }
 
-  // get active accounts
-  const users = await User.find({
-    _id: { $ne: req.user._id },
-    is_active: true,
-  });
+  const userId = new mongoose.Types.ObjectId(req.user.id);
+
+  const contacts = await User.find({ _id: { $ne: userId } }).select(
+    "-password"
+  );
+
+  const lastMessages = await Message.aggregate([
+    {
+      $match: {
+        $or: [{ from: userId }, { to: userId }],
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    {
+      $group: {
+        _id: {
+          $cond: [
+            { $eq: ["$from", userId] },
+            "$to", // 👈 if I sent the message → group by recipient
+            "$from", // 👈 else → group by sender
+          ],
+        },
+        lastMsg: { $first: "$$ROOT" },
+      },
+    },
+    {
+      $project: {
+        _id: { $toString: "$_id" }, // 👈 force string for map lookup
+        lastMsg: 1,
+      },
+    },
+  ]);
+
+  const lastMsgMap = new Map(lastMessages.map((m) => [m._id, m.lastMsg]));
+
+  const result = contacts.map((contact: IUser) => ({
+    ...contact.toObject(),
+    lastMessage: lastMsgMap.get(contact._id.toString()) || null,
+  }));
 
   res.json({
     status: "success",
     message: "Fetched user profile successfully",
-    data: { users: users, results: users.length },
+    data: { users: result, results: result.length },
   });
 };
 const getUserById = async (

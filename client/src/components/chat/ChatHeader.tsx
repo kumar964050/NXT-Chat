@@ -6,11 +6,14 @@ import ChatHeaderMenu from './ChatHeaderMenu';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 
 import useContacts from '@/hooks/useContacts';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import useSocket from '@/hooks/useSocket';
 
 const ChatHeader = () => {
   const { chatId: activeChat } = useParams();
   const { contacts } = useContacts();
+  const navigator = useNavigate();
+  const { activeUsers } = useSocket();
 
   const contact = contacts.find((c) => c._id === activeChat);
   if (!contact) return <Navigate to="/not-found" replace={true} />;
@@ -24,15 +27,13 @@ const ChatHeader = () => {
   };
 
   const handleBackClick = () => {
-    // dispatch(setActiveChat(null));
+    navigator('/app');
   };
 
   const formatLastSeen = (lastSeen: Date, isOnline: boolean) => {
     if (isOnline) return 'Online';
     return `Last seen ${formatDistanceToNow(new Date(lastSeen), { addSuffix: true })}`;
   };
-
-  const onlineUsers = [];
 
   return (
     <div className="bg-chat-header border-b border-border p-4 shadow-header">
@@ -44,12 +45,15 @@ const ChatHeader = () => {
 
           <div className="relative">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={contact?.image?.url} />
+              <AvatarImage
+                className=" w-10 h-10 rounded-full bg-gradient-primary text-primary-foreground font-medium"
+                src={contact?.image?.url}
+              />
               <AvatarFallback className="px-4 py-3 rounded-full bg-gradient-primary text-primary-foreground font-medium">
                 {contact?.name?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            {onlineUsers.includes(contact._id) && (
+            {activeUsers.includes(contact._id) && (
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-online-status border-2 border-chat-header rounded-full" />
             )}
           </div>
@@ -59,7 +63,7 @@ const ChatHeader = () => {
               {contact.name.charAt(0).toUpperCase() + contact.name.slice(1)}
             </h2>
             <p className="text-xs text-primary-foreground/70">
-              {formatLastSeen(contact.last_seen, false)}
+              {formatLastSeen(contact.last_seen, activeUsers.includes(contact._id))}
             </p>
           </div>
         </div>

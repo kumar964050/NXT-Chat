@@ -11,6 +11,7 @@ export interface User {
   is_deleted: boolean;
   is_verified: boolean;
   last_seen: Date;
+  lastMessage?: Message;
   createdAt: string;
   updatedAt: string;
 }

@@ -15,6 +15,8 @@ import ChatHeader from './ChatHeader';
 import msgAPis from '@/apis/messages';
 import Cookies from 'js-cookie';
 import { useToast } from '@/hooks/use-toast';
+import useSocket from '@/hooks/useSocket';
+import useContacts from '@/hooks/useContacts';
 
 // sendMessage, fetchMessages activeChat, chats
 const ChatWindow = () => {
@@ -25,6 +27,8 @@ const ChatWindow = () => {
   const { userDetails: currentUser } = useAuth();
   const { chatId: activeChat } = useParams();
   const { toast } = useToast();
+  const { handleUpdateLastMsg } = useContacts();
+  const { socket } = useSocket();
   const token = Cookies.get('token');
 
   // Getting msgs from server first time
@@ -48,7 +52,7 @@ const ChatWindow = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // file msg send
+  // file msg send also vth socket
   const handleFileUploadMsg = async (file: fileUploadResponse) => {
     const msg: Message = {
       id: crypto.randomUUID(),
@@ -61,8 +65,11 @@ const ChatWindow = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    handleUpdateLastMsg(msg);
+
     const data: messageResponse = await msgAPis.addMsg(token, msg);
     if (data.status === 'success') {
+      socket.emit('send-msg', msg);
       setMessages((prev) => {
         return [...prev, msg];
       });
@@ -73,7 +80,7 @@ const ChatWindow = () => {
       });
     }
   };
-  // text msg send
+  // text msg send also vth socket
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !activeChat) return;
@@ -89,6 +96,9 @@ const ChatWindow = () => {
       updatedAt: new Date(),
     };
 
+    socket.emit('send-msg', msg);
+
+    handleUpdateLastMsg(msg);
     const data: messageResponse = await msgAPis.addMsg(token, msg);
     if (data.status === 'success') {
       setMessages((prev) => {
@@ -97,7 +107,7 @@ const ChatWindow = () => {
       setNewMessage('');
     }
   };
-  //  share location
+  //  share location also vth socket
   const handleLocationShareMsg = async (latitude: number, longitude: number) => {
     const msg: Message = {
       id: crypto.randomUUID(),
@@ -116,9 +126,11 @@ const ChatWindow = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+    handleUpdateLastMsg(msg);
 
     const data: messageResponse = await msgAPis.addMsg(token, msg);
     if (data.status === 'success') {
+      socket.emit('send-msg', msg);
       setMessages((prev) => {
         return [...prev, msg];
       });
@@ -250,6 +262,18 @@ const ChatWindow = () => {
 
   const groupedMessages = groupMessagesByDate(messages);
 
+  // get msg from socket
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('get-msg', (msg) => {
+      if (activeChat === msg.from) setMessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.off('get-msg');
+    };
+  }, [socket, activeChat]);
+
   return (
     <>
       <div className="flex-1 flex flex-col bg-background h-full">
@@ -280,14 +304,14 @@ const ChatWindow = () => {
                       <div
                         className={`flex gap-2 max-w-[280px] sm:max-w-sm ${isFromMe ? 'flex-row-reverse' : 'flex-row'}`}
                       >
-                        {!isFromMe && (
+                        {/* {!isFromMe && (
                           <Avatar className="h-8 w-8 flex-shrink-0">
                             <AvatarImage src="" />
                             <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs">
                               U
                             </AvatarFallback>
                           </Avatar>
-                        )}
+                        )} */}
 
                         <div
                           className={`rounded-2xl px-3 py-2 shadow-bubble ${

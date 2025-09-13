@@ -43,14 +43,10 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       const data = await UserApis.me(token);
       if (data.status === 'success') {
         handleAddUser(data.data.user);
-        toast({
-          title: 'Welcome back!',
-          description: 'You have successfully logged in.',
-        });
         navigate('/app');
       }
     })();
-  }, []);
+  }, [navigate]);
 
   const values = {
     userDetails,

@@ -25,7 +25,7 @@ const ChatLayout: FC = () => {
   return (
     <div className="h-screen min-h-screen flex">
       {/* <Sidebar /> */}
-      <div className={`${activeChat ? 'hidden md:flex' : 'flex'} flex-col h-full`}>
+      <div className={`${pathname !== '/app' ? 'hidden md:flex' : 'flex'} flex-col h-full`}>
         {/* User Header */}
         <div className="bg-chat-header p-4 border-b border-border">
           <div className="flex items-center justify-between">
@@ -76,13 +76,8 @@ const ChatLayout: FC = () => {
       </div>
       <Outlet />
 
-      {/* based on location display content here */}
-      {/* if location app show welcome */}
-      {/* if location settings show settings */}
-      {/* if location user details */}
-      {/* if location edit profile */}
       {pathname === '/app' && (
-        <div className="flex flex-col h-full w-full justify-center text-foreground">
+        <div className="hidden md:flex flex-col h-full w-full justify-center text-foreground">
           <div className="">
             <div className="text-center space-y-4">
               <div className="w-24 h-24 bg-gradient-primary rounded-full mx-auto flex items-center justify-center">

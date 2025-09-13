@@ -10,18 +10,21 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ContactsProvider } from '@/context/ContactsContext';
+import { SocketProvider } from '@/context/SocketContext';
 
 const AppLayout: FC = () => {
   return (
     <AuthProvider>
       <ContactsProvider>
-        <ThemeProvider>
-          <Toaster />
-          <Sonner />
-          <main className="bg-gradient-bg">
-            <Outlet />
-          </main>
-        </ThemeProvider>
+        <SocketProvider>
+          <ThemeProvider>
+            <Toaster />
+            <Sonner />
+            <main className="bg-gradient-bg text-foreground">
+              <Outlet />
+            </main>
+          </ThemeProvider>
+        </SocketProvider>
       </ContactsProvider>
     </AuthProvider>
   );

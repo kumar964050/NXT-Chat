@@ -9,25 +9,17 @@ import ApiUsers from '@/apis/users';
 import Cookies from 'js-cookie';
 import { useNavigate, useParams } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
+import useSocket from '@/hooks/useSocket';
+import useContacts from '@/hooks/useContacts';
 
 const ChatSidebar = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [contacts, setContacts] = useState([]);
   const navigate = useNavigate();
   const { chatId: activeChat } = useParams();
   const { userDetails } = useAuth();
+  const { activeUsers } = useSocket();
+  const { contacts } = useContacts();
   //   const currentUser = useSelector((state: RootState) => state.auth.user);
-
-  // get contacts list from server
-  useEffect(() => {
-    (async () => {
-      const token = await Cookies.get('token');
-      const data = await ApiUsers.getUsers(token);
-      if (data.status === 'success') {
-        setContacts(data.data.users);
-      }
-    })();
-  }, []);
 
   const filteredContacts = contacts.filter(
     (contact) =>
@@ -39,16 +31,11 @@ const ChatSidebar = () => {
     navigate(`chat/${contactId}`);
   };
 
-  // const formatLastSeen = (lastSeen: Date, isOnline: boolean) => {
-  //   if (isOnline) return 'Online';
-  //   return `Last seen ${formatDistanceToNow(new Date(lastSeen), { addSuffix: true })}`;
-  // };
-
   const getLastMessagePreview = (lastMessage) => {
     if (!lastMessage) return 'No messages yet';
 
-    const { type, content, senderId } = lastMessage;
-    const isFromMe = senderId === userDetails._id;
+    const { type, content, from } = lastMessage;
+    const isFromMe = from === userDetails._id;
     const prefix = isFromMe ? 'You: ' : '';
 
     switch (type) {
@@ -68,9 +55,6 @@ const ChatSidebar = () => {
         return content;
     }
   };
-
-  // hard coded values
-  const activeUser = ['68c1b31ff2d14aadf2fe9c2b'];
 
   return (
     <div className="w-80 bg-chat-sidebar border-r border-border flex flex-col h-full">
@@ -117,7 +101,7 @@ const ChatSidebar = () => {
                       {contact?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  {activeUser.includes(contact._id) && (
+                  {activeUsers.includes(contact._id) && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-online-status border-2 border-chat-sidebar rounded-full" />
                   )}
                 </div>
@@ -142,14 +126,14 @@ const ChatSidebar = () => {
                       {getLastMessagePreview(contact?.lastMessage)}
                     </p>
 
-                    <div className="flex items-center gap-2">
-                      {contact?.unreadCount > 0 && (
+                    {/* <div className="flex items-center gap-2">
+                      {10 > 0 && (
                         <Badge className="bg-primary text-primary-foreground text-xs px-2 py-1 min-w-5 h-5 rounded-full flex items-center justify-center">
-                          {contact?.unreadCount > 99 ? '99+' : contact?.unreadCount}
+                          {10 > 99 ? '99+' : 10}
                         </Badge>
                       )}
                       <div className="w-2 h-2 bg-primary rounded-full" />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
