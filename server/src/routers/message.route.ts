@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { NextFunction, RequestHandler, Router } from "express";
 
 import controller from "../controllers/message.controller";
 

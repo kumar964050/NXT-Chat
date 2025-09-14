@@ -42,7 +42,9 @@ const addUser = async (userId: string, socketId: string) => {
 
 // get user id by socket id
 const getUser = (socketId: string) => {
-  const user = activeUsers.find((user) => user.socketId === socketId);
+  const user: ActiveUser | undefined = activeUsers.find(
+    (user) => user.socketId === socketId
+  );
   return user ? user.userId : null;
 };
 
@@ -63,16 +65,40 @@ const removeUser = (socketId: string) => {
   })();
 };
 
+interface SocketMessage {
+  id: string;
+  type: "text" | "image" | "video" | "audio" | "document" | "location";
+  from: string;
+  to: string;
+  content: string;
+  attachment?: {
+    id: string;
+    url: string;
+    name: string;
+    size: number;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+  };
+  status: "sending" | "sent" | "delivered" | "read";
+  createdAt: string; // ISO-8601
+  updatedAt: string; // ISO-8601
+}
 io.on("connection", (socket: Socket) => {
   //01) add user into active user arr list
-  socket.on("add-user", (userId) => {
-    addUser(userId, socket.id);
-    const usersIds = activeUsers.map((user) => user.userId);
-    io.emit("get-users", usersIds);
+  socket.on("add-user", async (userId: string) => {
+    try {
+      await addUser(userId, socket.id);
+      const userIds: string[] = activeUsers.map((u) => u.userId);
+      io.emit("get-users", userIds);
+    } catch (err) {
+      console.error("add-user failed:", err);
+    }
   });
-
   // send msg to to user
-  socket.on("send-msg", (msg) => {
+  socket.on("send-msg", (msg: SocketMessage) => {
     const toSocket = getSocketId(msg.to);
     if (toSocket) {
       socket.to(toSocket).emit("get-msg", msg);
@@ -92,10 +118,10 @@ io.on("connection", (socket: Socket) => {
 
   //02 remove user from active user arr list
   socket.on("disconnect", () => {
-    const userId = getUser(socket.id);
+    const userId: string | null = getUser(socket.id);
     removeUser(socket.id);
     io.emit("user-offline", userId);
-    const usersIds = activeUsers.map((user) => user.userId);
+    const usersIds: string[] = activeUsers.map((user) => user.userId);
     io.emit("get-users", usersIds);
   });
 });

@@ -1,12 +1,12 @@
 import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import User, { IUser } from "../models/user.model";
-import { AuthFileRequest } from "../types";
+import User from "../models/user.model";
+import { AuthFileRequest, AuthRequest } from "../types";
 
 import CustomError from "../utils/CustomError";
 
 async function Authenticate(
-  req: AuthFileRequest,
+  req: AuthRequest | AuthFileRequest,
   res: Response,
   next: NextFunction
 ) {
