@@ -16,11 +16,7 @@ const ProtectedLayout: FC<ProtectedLayoutProps> = ({ children }) => {
   }
 
   // Authenticated → render children
-  return (
-    <>
-      <div>{children}</div>
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default ProtectedLayout;

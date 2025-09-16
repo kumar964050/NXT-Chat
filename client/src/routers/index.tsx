@@ -16,6 +16,9 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 
 // chat
 import ChatWindow from '@/components/chat/ChatWindow';
+// calls
+// import OutGoingCall from '@/components/call/OutGoingCall';
+// import IncomingCall from '@/components/call/IncomingCall';
 
 // settings & profile
 import Settings from '@/pages/Settings';

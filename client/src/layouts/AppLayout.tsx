@@ -11,19 +11,22 @@ import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ContactsProvider } from '@/context/ContactsContext';
 import { SocketProvider } from '@/context/SocketContext';
+import { CallProvider } from '@/context/CallContext';
 
 const AppLayout: FC = () => {
   return (
     <AuthProvider>
       <ContactsProvider>
         <SocketProvider>
-          <ThemeProvider>
-            <Toaster />
-            <Sonner />
-            <main className="bg-gradient-bg text-foreground">
-              <Outlet />
-            </main>
-          </ThemeProvider>
+          <CallProvider>
+            <ThemeProvider>
+              <Toaster />
+              <Sonner />
+              <main className="bg-gradient-bg text-foreground">
+                <Outlet />
+              </main>
+            </ThemeProvider>
+          </CallProvider>
         </SocketProvider>
       </ContactsProvider>
     </AuthProvider>

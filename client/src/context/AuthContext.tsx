@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 interface AuthContextType {
   userDetails: User;
   isAuthenticated: boolean;
+  isLoading: boolean;
   handleAddUser: (user: User) => void;
   handleRemoveUser: () => void;
 }
@@ -21,7 +22,7 @@ interface AuthProviderProps {
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const handleAddUser = (user: User) => {
@@ -37,11 +38,18 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   //
   useEffect(() => {
     (async () => {
-      const token = Cookies.get('token');
-      const data = await UserApis.me(token);
-      if (data.status === 'success') {
-        handleAddUser(data.data.user);
-        navigate('/app');
+      try {
+        setLoading(true);
+        const token = Cookies.get('token');
+        const data = await UserApis.me(token);
+        if (data.status === 'success') {
+          handleAddUser(data.data.user);
+          navigate('/app');
+        }
+      } catch (error) {
+        console.log(error.message);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [navigate]);
@@ -51,7 +59,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     handleAddUser,
     handleRemoveUser,
-    loading,
+    isLoading,
     setLoading,
   };
 

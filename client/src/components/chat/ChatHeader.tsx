@@ -8,22 +8,24 @@ import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import useContacts from '@/hooks/useContacts';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import useSocket from '@/hooks/useSocket';
+import useCall from '@/hooks/useCall';
 
 const ChatHeader = () => {
   const { chatId: activeChat } = useParams();
   const { contacts } = useContacts();
   const navigator = useNavigate();
   const { activeUsers } = useSocket();
+  const { startCall } = useCall();
 
   const contact = contacts.find((c) => c._id === activeChat);
   if (!contact) return <Navigate to="/not-found" replace={true} />;
 
   const handleVoiceCall = () => {
-    // dispatch(initiateCall({ receiverId: contact.id, type: 'voice' }));
+    startCall(contact._id, 'audio');
   };
 
   const handleVideoCall = () => {
-    // dispatch(initiateCall({ receiverId: contact.id, type: 'video' }));
+    startCall(contact._id, 'video');
   };
 
   const handleBackClick = () => {
