@@ -6,12 +6,20 @@ import useContacts from '@/hooks/useContacts';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 
 const Active = () => {
-  const { callDuration, declineCall, currentCall, isMuted, toggleMute, isVideoOff, toggleVideo } =
-    useCall();
+  const {
+    callDuration,
+    declineCall,
+    currentCall,
+    isMuted,
+    localVideoRef,
+    remoteVideoRef,
+    toggleMute,
+    isVideoOff,
+    toggleVideo,
+  } = useCall();
   const { contacts } = useContacts();
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
+  if (!currentCall) return null;
   const contact = contacts.find((c) => {
     return c._id === currentCall.receiverId || c._id === currentCall.callerId;
   });
@@ -36,8 +44,6 @@ const Active = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
-  if (!currentCall) return null;
 
   const type = currentCall.type;
 
@@ -64,7 +70,7 @@ const Active = () => {
       </div>
 
       {/* remote video */}
-      {type == 'video' && (
+      {type === 'video' && (
         <div className="">
           <video
             ref={remoteVideoRef}

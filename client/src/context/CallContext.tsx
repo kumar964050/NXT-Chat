@@ -60,24 +60,25 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const getLocalStream = async (type: CallType) => {
     const constraints = {
       audio: true,
-      video: type === 'video' && !isVideoOff,
+      video: type === 'video',
     };
     if (!localStreamRef.current) {
       try {
         const s = await navigator.mediaDevices.getUserMedia(constraints);
         localStreamRef.current = s;
+        // Apply initial mute/video states after stream creation
+        s.getAudioTracks().forEach((t) => (t.enabled = !isMuted));
+        if (type === 'video') {
+          s.getVideoTracks().forEach((t) => (t.enabled = !isVideoOff));
+        }
         if (localVideoRef.current) localVideoRef.current.srcObject = s;
       } catch (err) {
         console.error('getUserMedia failed', err);
         throw err;
       }
-    } else {
-      localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = !isVideoOff));
-      localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = !isMuted));
     }
     return localStreamRef.current;
   };
-
   const createPeerConnection = (remoteUserId: string) => {
     const pc = new RTCPeerConnection(ICE_CONFIG);
     peerRef.current = pc;
