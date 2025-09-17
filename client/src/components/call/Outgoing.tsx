@@ -1,5 +1,80 @@
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { Button } from '../ui/button';
+import { FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff } from 'react-icons/fi';
+import useCall from '@/hooks/useCall';
+import useContacts from '@/hooks/useContacts';
+
 const Outgoing = () => {
-  return <div>Outgoing</div>;
+  const { currentCall, isMuted, isVideoOff, toggleMute, toggleVideo, localVideoRef, declineCall } =
+    useCall();
+  const { contacts } = useContacts();
+  if (!currentCall) return null;
+
+  const contact = contacts.find((c) => c._id === currentCall.receiverId);
+
+  return (
+    <div className="fixed inset-0 bg-gradient-primary z-50 flex flex-col">
+      {/* Call Header */}
+      <div className="flex-1 flex flex-col items-center justify-center text-primary-foreground p-8">
+        <div className="text-center space-y-6">
+          <Avatar className="h-25 w-25 mx-auto border-4 border-primary-foreground/20">
+            <AvatarImage className="object-cover" src={contact?.image?.url} />
+            <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-4xl font-bold">
+              {contact?.name?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+
+          <div>
+            <h2 className="text-2xl font-semibold mb-2">{contact?.name || 'Unknown Contact'}</h2>
+            <p className="text-lg text-primary-foreground/80">Calling...</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Call Controls */}
+      <div className="p-8">
+        <div className="flex items-center justify-center gap-6">
+          {/* Mute Button */}
+          <Button
+            size="lg"
+            variant={isMuted ? 'destructive' : 'secondary'}
+            className="rounded-full cursor-pointer h-16 w-16"
+            onClick={toggleMute}
+          >
+            {isMuted ? <FiMicOff className="h-6 w-6" /> : <FiMic className="h-6 w-6" />}
+          </Button>
+
+          {/* Video Button (only show for video calls) */}
+          {currentCall.type === 'video' && (
+            <Button
+              size="lg"
+              variant={isVideoOff ? 'destructive' : 'secondary'}
+              className="rounded-full cursor-pointer h-16 w-16"
+              onClick={toggleVideo}
+            >
+              {isVideoOff ? <FiVideoOff className="h-6 w-6" /> : <FiVideo className="h-6 w-6" />}
+            </Button>
+          )}
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="fixed bottom-0 right-0 w-100"
+          />
+          {/* End Call Button */}
+          <Button
+            size="lg"
+            variant="destructive"
+            className="rounded-full cursor-pointer h-16 w-16"
+            onClick={declineCall}
+          >
+            <FiPhoneOff className="h-6 w-6" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Outgoing;

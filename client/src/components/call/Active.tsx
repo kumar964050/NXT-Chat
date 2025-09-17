@@ -1,5 +1,129 @@
+import useCall from '@/hooks/useCall';
+import { Button } from '../ui/button';
+import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi';
+import { useEffect, useRef } from 'react';
+import useContacts from '@/hooks/useContacts';
+import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
+
 const Active = () => {
-  return <div>Active</div>;
+  const { callDuration, declineCall, currentCall, isMuted, toggleMute, isVideoOff, toggleVideo } =
+    useCall();
+  const { contacts } = useContacts();
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+
+  const contact = contacts.find((c) => {
+    return c._id === currentCall.receiverId || c._id === currentCall.callerId;
+  });
+
+  const handleEndCall = () => declineCall();
+
+  const getCallStatusText = () => {
+    switch (currentCall.status) {
+      case 'ringing':
+        return 'Calling...';
+      case 'ongoing':
+        return 'ongoing';
+      case 'ended':
+        return 'Call ended';
+      default:
+        return 'Connecting...';
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  if (!currentCall) return null;
+
+  const type = currentCall.type;
+
+  return (
+    <div className="fixed inset-0 bg-gradient-primary z-50 flex flex-col">
+      {/* header */}
+      <div className="z-50 flex justify-center items-center p-5 space-x-3">
+        <div className="text-center space-y-6">
+          <Avatar className="w-15 h-15">
+            <AvatarImage
+              className="w-15 h-15 rounded-full object-cover"
+              src={contact?.image?.url}
+            />
+            <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-4xl font-bold h-25 w-25">
+              {contact?.name?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold ">{contact?.name || 'Unknown Contact'}</h2>
+          <p className="text-sm text-primary-foreground/80">{getCallStatusText()}</p>
+          <p className="text-xs text-primary-foreground/80">{formatDuration(callDuration)}</p>
+        </div>
+      </div>
+
+      {/* remote video */}
+      {type == 'video' && (
+        <div className="">
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            className="absolute bg-black top-0 bottom-0 left-0 right-0 h-screen w-screen object-cover"
+          />
+        </div>
+      )}
+
+      {/* local video */}
+      {type === 'video' && (
+        <video
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+          className="fixed bg-black  bottom-0 right-0 w-100"
+        />
+      )}
+
+      {/* footer */}
+      <div className="absolute left-0 right-0 bottom-0 p-6 flex justify-center">
+        <div className="flex items-center justify-center gap-6">
+          {/* Mute Button */}
+          <Button
+            size="lg"
+            variant={isMuted ? 'destructive' : 'secondary'}
+            className="rounded-full cursor-pointer h-16 w-16"
+            onClick={toggleMute}
+          >
+            {isMuted ? <FiMicOff className="h-6 w-6" /> : <FiMic className="h-6 w-6" />}
+          </Button>
+
+          {/* Video Button (only show for video calls) */}
+          {currentCall.type === 'video' && (
+            <Button
+              size="lg"
+              variant={isVideoOff ? 'destructive' : 'secondary'}
+              className="rounded-full cursor-pointer h-16 w-16"
+              onClick={toggleVideo}
+            >
+              {isVideoOff ? <FiVideoOff className="h-6 w-6" /> : <FiVideo className="h-6 w-6" />}
+            </Button>
+          )}
+
+          {/* End Call Button */}
+          <Button
+            size="lg"
+            variant="destructive"
+            className="rounded-full cursor-pointer h-16 w-16"
+            onClick={handleEndCall}
+          >
+            <FiPhoneOff className="h-6 w-6" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Active;

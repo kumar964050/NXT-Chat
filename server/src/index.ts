@@ -124,6 +124,40 @@ io.on("connection", (socket: Socket) => {
     }
   );
 
+  //
+  socket.on("call-user", (data) => {
+    // const fromSocket = getSocketId(data.callerId);
+    const toSocket = getSocketId(data.receiverId);
+    if (toSocket) io.to(toSocket).emit("incoming-call", data);
+    // else {
+    //   setTimeout(() => {
+    //     if (fromSocket) io.to(fromSocket).emit("end-call");
+    //   }, 8000);
+    // }
+  });
+
+  // Answer call
+  socket.on("answer-call", (data) => {
+    const toSocket = getSocketId(data.callerId);
+    if (toSocket) io.to(toSocket).emit("call-answered", data);
+  });
+
+  // Relay ICE candidates
+  socket.on("ice-candidate", ({ to, candidate }) => {
+    const targetSocket = getSocketId(to);
+    if (targetSocket) {
+      io.to(targetSocket).emit("ice-candidate", { candidate });
+    }
+  });
+
+  // End call
+  socket.on("end-call", (data) => {
+    const fromSocket = getSocketId(data.callerId);
+    const toSocket = getSocketId(data.receiverId);
+    if (fromSocket) io.to(fromSocket).emit("end-call");
+    if (toSocket) io.to(toSocket).emit("end-call");
+  });
+
   // disconnected user or user went to offline
   socket.on("disconnect", () => {
     const userId: string | null = getUser(socket.id);
