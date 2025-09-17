@@ -124,6 +124,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     if (!currentCall || !socket || !userDetails) return;
 
     try {
+      if (!currentCall.offer) {
+        throw new Error('No offer present in current call');
+      }
+
       await getLocalStream(currentCall.type);
 
       const peer = createPeerConnection(currentCall.callerId);
@@ -131,7 +135,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
 
-      socket.emit('answer-call', {
+      await socket.emit('answer-call', {
         callerId: currentCall.callerId,
         receiverId: userDetails._id,
         type: currentCall.type,
