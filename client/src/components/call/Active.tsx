@@ -1,7 +1,6 @@
 import useCall from '@/hooks/useCall';
 import { Button } from '../ui/button';
 import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi';
-import { useEffect, useRef } from 'react';
 import useContacts from '@/hooks/useContacts';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 
@@ -46,7 +45,6 @@ const Active = () => {
   };
 
   const type = currentCall.type;
-
   return (
     <div className="fixed inset-0 bg-gradient-primary z-50 flex flex-col">
       {/* header */}
@@ -76,24 +74,26 @@ const Active = () => {
             ref={remoteVideoRef}
             autoPlay
             playsInline
-            className="absolute bg-black top-0 bottom-0 left-0 right-0 h-screen w-screen object-cover"
+            className="absolute z-10 bg-black top-0 bottom-0 left-0 right-0 h-screen w-screen object-cover"
           />
         </div>
       )}
 
       {/* local video */}
       {type === 'video' && (
-        <video
-          ref={localVideoRef}
-          autoPlay
-          playsInline
-          muted
-          className="fixed bg-black  bottom-0 right-0 w-100"
-        />
+        <div>
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="fixed bg-black border-2 object-cover border-border rounded-lg z-50  bottom-0 right-0 w-30 md:w-80 md:h-50"
+          />
+        </div>
       )}
 
       {/* footer */}
-      <div className="absolute left-0 right-0 bottom-0 p-6 flex justify-center">
+      <div className="absolute  z-40 left-0 right-0 bottom-0 p-6 flex justify-center">
         <div className="flex items-center justify-center gap-6">
           {/* Mute Button */}
           <Button

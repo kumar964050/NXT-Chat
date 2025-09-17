@@ -41,8 +41,7 @@ const ICE_CONFIG: RTCConfiguration = {
 export const CallProvider = ({ children }: { children: ReactNode }) => {
   const { socket } = useSocket();
   const { userDetails } = useAuth();
-  // const { toast } = useToast();
-  const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
+
   const [currentCall, setCurrentCall] = useState<CurrentCallProps | null>(null);
   const [isOutgoing, setIsOutgoing] = useState(false);
   const [isIncoming, setIsIncoming] = useState(false);
@@ -58,69 +57,41 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const getLocalStream = async (type: CallType) => {
-    const constraints = {
-      audio: true,
-      video: type === 'video',
-    };
-    if (!localStreamRef.current) {
-      try {
-        const s = await navigator.mediaDevices.getUserMedia(constraints);
-        localStreamRef.current = s;
-        // Apply initial mute/video states after stream creation
-        s.getAudioTracks().forEach((t) => (t.enabled = !isMuted));
-        if (type === 'video') {
-          s.getVideoTracks().forEach((t) => (t.enabled = !isVideoOff));
-        }
-        if (localVideoRef.current) localVideoRef.current.srcObject = s;
-      } catch (err) {
-        console.error('getUserMedia failed', err);
-        throw err;
-      }
+    try {
+      const constraints = { audio: true, video: type === 'video' };
+      const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+      localStreamRef.current = localStream;
+      if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
+      return localStream;
+    } catch (err) {
+      console.error('Failed to get local stream', err);
+      throw err;
     }
-    return localStreamRef.current;
   };
-  const createPeerConnection = (remoteUserId: string) => {
-    const pc = new RTCPeerConnection(ICE_CONFIG);
-    peerRef.current = pc;
 
-    // remote
-    pc.ontrack = (event) => {
+  const createPeerConnection = (remoteUserId: string) => {
+    const peer = new RTCPeerConnection(ICE_CONFIG);
+
+    // Add local tracks
+    localStreamRef.current?.getTracks().forEach((track) => {
+      peer.addTrack(track, localStreamRef.current as MediaStream);
+    });
+
+    // read remote tracks
+    peer.ontrack = (event) => {
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
       }
     };
 
-    //ICE
-    pc.onicecandidate = (event) => {
+    // ICE candidates
+    peer.onicecandidate = (event) => {
       if (event.candidate) {
-        socket?.emit('ice-candidate', {
-          to: remoteUserId,
-          candidate: event.candidate,
-        });
+        socket.emit('ice-candidate', { target: remoteUserId, candidate: event.candidate });
       }
     };
-
-    // local
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => {
-        const alreadyAdded = pc.getSenders().some((sender) => sender.track === track);
-        if (!alreadyAdded) {
-          pc.addTrack(track, localStreamRef.current!);
-        }
-      });
-    }
-
-    // Flush pending ICE
-    pendingCandidates.current.forEach(async (c) => {
-      try {
-        await pc.addIceCandidate(new RTCIceCandidate(c));
-      } catch (err) {
-        console.warn('flush addIceCandidate error', err);
-      }
-    });
-    pendingCandidates.current = [];
-
-    return pc;
+    peerRef.current = peer;
+    return peer;
   };
 
   // start call
@@ -129,26 +100,20 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       await getLocalStream(type);
+      const peer = createPeerConnection(receiverId);
+      const offer = await peer.createOffer();
+      await peer.setLocalDescription(offer);
 
-      const pc = createPeerConnection(receiverId);
-
-      // 3) ensure local tracks are added (createPeerConnection does if stream exists)
-      // 4) create offer
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      // 5) inform server -> server will forward to callee as incoming-call (include offer)
-
-      const callUserData = {
+      const callUserData: CurrentCallProps = {
         callerId: userDetails._id,
         receiverId,
         type,
         status: 'calling',
         offer,
       };
-      socket.emit('call-user', callUserData);
 
-      setCurrentCall({ callerId: userDetails._id, receiverId, type, status: 'calling', offer });
+      socket.emit('call-user', callUserData);
+      setCurrentCall(callUserData);
       setIsOutgoing(true);
     } catch (err) {
       console.error('startCall error', err);
@@ -157,25 +122,15 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
   const answerCall = async () => {
     if (!currentCall || !socket || !userDetails) return;
+
     try {
-      // 1) get local stream (attach to localVideoRef)
       await getLocalStream(currentCall.type);
 
-      // 2) create pc & add local tracks
-      const pc = createPeerConnection(currentCall.callerId);
+      const peer = createPeerConnection(currentCall.callerId);
+      await peer.setRemoteDescription(new RTCSessionDescription(currentCall.offer));
+      const answer = await peer.createAnswer();
+      await peer.setLocalDescription(answer);
 
-      // 3) set remote description with caller's offer (must exist)
-      if (currentCall.offer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(currentCall.offer));
-      } else {
-        console.warn('No offer present on currentCall');
-      }
-
-      // 4) create answer, set local desc
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      // 5) send answer back to caller -> server forwards as call-answered
       socket.emit('answer-call', {
         callerId: currentCall.callerId,
         receiverId: userDetails._id,
@@ -183,7 +138,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         answer,
       });
 
-      // update state
       setIsIncoming(false);
       setIsOutgoing(false);
       setIsInCall(true);
@@ -192,6 +146,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       console.error('answerCall failed', err);
     }
   };
+
   const declineCall = () => {
     if (!currentCall || !socket) return;
     socket.emit('end-call', {
@@ -202,58 +157,45 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   };
   // end call
   const endCall = () => {
+    peerRef.current?.close();
+    peerRef.current = null;
+
+    localStreamRef.current?.getTracks().forEach((t) => t.stop());
+    localStreamRef.current = null;
+
+    if (localVideoRef.current) localVideoRef.current.srcObject = null;
+    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
+
     setCurrentCall(null);
     setIsInCall(false);
     setIsIncoming(false);
     setIsOutgoing(false);
     setCallDuration(0);
-
-    // stop and clear local stream
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((t) => t.stop());
-      localStreamRef.current = null;
-    }
-
-    // close peer
-    if (peerRef.current) {
-      try {
-        peerRef.current.ontrack = null;
-        peerRef.current.onicecandidate = null;
-        peerRef.current.close();
-      } catch {}
-      peerRef.current = null;
-    }
-
-    // clear UI video elements
-    if (localVideoRef.current) localVideoRef.current.srcObject = null;
-    if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
   };
+
   const toggleMute = () => {
-    setIsMuted((prev) => {
-      const next = !prev;
-      if (localStreamRef.current) {
-        localStreamRef.current.getAudioTracks().forEach((t) => (t.enabled = !next ? true : false));
-      }
-      return next;
-    });
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !track.enabled; // false = muted
+      });
+    }
+    setIsMuted((prev) => !prev);
   };
 
   const toggleVideo = () => {
-    setIsVideoOff((prev) => {
-      const next = !prev;
-      if (localStreamRef.current) {
-        localStreamRef.current.getVideoTracks().forEach((t) => (t.enabled = !next ? true : false));
-      }
-      return next;
-    });
+    if (localStreamRef.current) {
+      localStreamRef.current.getVideoTracks().forEach((track) => {
+        track.enabled = !track.enabled; // false = video off
+      });
+    }
+    setIsVideoOff((prev) => !prev);
   };
 
   useEffect(() => {
     if (!socket || !userDetails) return;
 
-    // incoming call (caller included an offer in startCall)
+    // incoming call
     socket.on('incoming-call', (data: CurrentCallProps) => {
-      // data should contain: callerId, receiverId, type, status, offer
       if (!data) return;
       setCurrentCall(data);
       setIsIncoming(true);
@@ -261,7 +203,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       setIsInCall(false);
     });
 
-    // call answered (caller receives callee's answer)
+    // call answered
     socket.on(
       'call-answered',
       async (data: {
@@ -269,32 +211,27 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         receiverId: string;
         answer?: RTCSessionDescriptionInit;
       }) => {
-        // only the caller should handle this: set remote desc on existing pc
         try {
-          if (data?.answer && peerRef.current) {
+          if (data.answer && peerRef.current) {
             await peerRef.current.setRemoteDescription(new RTCSessionDescription(data.answer));
+            setIsInCall(true);
+            setIsOutgoing(false);
+            setCurrentCall((c) => (c ? { ...c, status: 'ongoing' } : c));
           }
-          setIsInCall(true);
-          setIsOutgoing(false);
-          setCurrentCall((c) => (c ? { ...c, status: 'ongoing' } : c));
         } catch (err) {
           console.error('Failed to set remote desc on call-answered', err);
         }
       }
     );
 
-    // ICE candidate relays (both sides)
-    socket.on('ice-candidate', async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
-      if (!candidate) return;
-      if (peerRef.current) {
-        try {
+    // ICE
+    socket.on('ice-candidate', async ({ candidate }) => {
+      try {
+        if (peerRef.current) {
           await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (err) {
-          console.warn('addIceCandidate error', err);
         }
-      } else {
-        // stash until peerRef exists
-        pendingCandidates.current.push(candidate);
+      } catch (err) {
+        console.error('Error adding received ICE candidate', err);
       }
     });
 
@@ -309,7 +246,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       socket.off('ice-candidate');
       socket.off('end-call');
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, userDetails]);
 
   // call duration timer
