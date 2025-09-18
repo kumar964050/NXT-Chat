@@ -60,8 +60,14 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     try {
       const constraints = { audio: true, video: type === 'video' };
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+
       localStreamRef.current = localStream;
-      if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
+      setTimeout(() => {
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStream;
+        }
+      }, 1000);
+
       return localStream;
     } catch (err) {
       console.error('Failed to get local stream', err);
@@ -72,24 +78,37 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const createPeerConnection = (remoteUserId: string) => {
     const peer = new RTCPeerConnection(ICE_CONFIG);
 
-    // Add local tracks
+    // add local tracks once
     localStreamRef.current?.getTracks().forEach((track) => {
+      console.log('📹 Adding local track:', track.kind);
       peer.addTrack(track, localStreamRef.current as MediaStream);
     });
 
-    // read remote tracks
     peer.ontrack = (event) => {
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = event.streams[0];
+      setTimeout(() => {
+        if (remoteVideoRef.current) {
+          console.log('📡 Remote stream received:', event.streams);
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      }, 1000);
+    };
+
+    peer.onicecandidate = (event) => {
+      if (event.candidate) {
+        socket.emit('ice-candidate', {
+          to: remoteUserId,
+          candidate: event.candidate,
+        });
       }
     };
 
-    // ICE candidates
-    peer.onicecandidate = (event) => {
-      if (event.candidate) {
-        socket.emit('ice-candidate', { target: remoteUserId, candidate: event.candidate });
+    peer.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', peer.iceConnectionState);
+      if (['failed', 'disconnected', 'closed'].includes(peer.iceConnectionState)) {
+        endCall();
       }
     };
+
     peerRef.current = peer;
     return peer;
   };
