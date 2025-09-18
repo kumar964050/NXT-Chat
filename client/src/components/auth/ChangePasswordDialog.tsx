@@ -91,7 +91,7 @@ export const ChangePasswordDialog = ({ children }: ChangePasswordDialogProps) =>
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   };
 

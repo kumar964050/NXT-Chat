@@ -18,7 +18,7 @@ const uploadFileMsg = (token: string, file) =>
   apiFetch<MessageResponse>(`/messages/file`, {
     method: 'POST',
     token,
-    headers: { 'content-type': 'form/data' },
+    headers: { 'content-type': 'multipart/form-data' },
     body: file,
   });
 
