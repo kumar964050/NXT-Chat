@@ -63,22 +63,17 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   const getLocalStream = async (type: CallType) => {
-    try {
-      const constraints = { audio: true, video: type === 'video' };
-      const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const constraints = { audio: true, video: type === 'video' };
+    const localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    localStreamRef.current = await localStream;
 
-      localStreamRef.current = localStream;
+    setTimeout(() => {
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = localStream;
+      }
+    }, 1000);
 
-      setTimeout(() => {
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = localStream;
-        }
-      }, 1000);
-
-      return localStream;
-    } catch (err) {
-      console.error('❌ Failed to get local stream', err);
-    }
+    return localStream;
   };
 
   const createPeerConnection = (remoteUserId: string) => {
@@ -124,8 +119,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     if (!socket || !userDetails) return;
 
     try {
-      await getLocalStream(type);
-      const peer = createPeerConnection(receiverId);
+      const stream = await getLocalStream(type);
+      if (!stream) console.log('Getting Stream is Failed');
+      const peer = await createPeerConnection(receiverId);
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
 
@@ -157,7 +153,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('No offer present in current call');
       }
 
-      await getLocalStream(currentCall.type);
+      const stream = await getLocalStream(currentCall.type);
+      if (!stream) console.log('Getting Stream is Failed');
 
       const peer = createPeerConnection(currentCall.callerId);
       await peer.setRemoteDescription(new RTCSessionDescription(currentCall.offer));
@@ -304,6 +301,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       .getUserMedia({ video: currentCall.type === 'video', audio: true })
       .then((stream) => {
         localStream = stream;
+        localStreamRef.current = localStream;
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
           console.log('🎥 Attached stream to localVideo');
@@ -314,7 +312,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       if (localStream) {
         localStream.getTracks().forEach((track) => track.stop());
-        console.log('🛑 Stopped local media tracks');
       }
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = null;
