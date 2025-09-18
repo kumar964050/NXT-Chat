@@ -203,6 +203,18 @@ const ChangePassword = async (
   }
   const { currentPassword, newPassword } = req.body;
 
+  if (!currentPassword || !newPassword) {
+    return next(
+      new CustomError("Current password and new password are required", 400)
+    );
+  }
+
+  if (newPassword.length < 8) {
+    return next(
+      new CustomError("New password must be at least 8 characters long", 400)
+    );
+  }
+
   const user = await User.findById(req.user._id).select("+password");
   if (!user) {
     return next(new CustomError("User details not found", 404));
@@ -221,7 +233,6 @@ const ChangePassword = async (
     message: "Password updated successfully",
   });
 };
-
 export default {
   getAllUsers,
   getUserById,
