@@ -12,6 +12,7 @@ import useAuth from '@/hooks/useAuth';
 import UserApis from '@/apis/users';
 import Cookies from 'js-cookie';
 import { UserResponse } from '@/types';
+import { ChangePasswordDialog } from '@/components/auth/ChangePasswordDialog';
 
 const Account = () => {
   const navigate = useNavigate();
@@ -303,12 +304,14 @@ const Account = () => {
             <CardDescription>Manage your account security</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="w-full">
-              Change Password
-            </Button>
-            <Button variant="outline" className="w-full">
+            <ChangePasswordDialog>
+              <Button variant="outline" className="w-full">
+                Change Password
+              </Button>
+            </ChangePasswordDialog>
+            {/* <Button variant="outline" className="w-full">
               Two-Factor Authentication
-            </Button>
+            </Button> */}
           </CardContent>
         </Card>
 

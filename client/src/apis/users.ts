@@ -37,10 +37,24 @@ const removeProfileImage = (token, id: string) =>
     token,
   });
 
+interface ChangePasswordProps {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+const changePassword = (token, id: string, data: ChangePasswordProps) =>
+  apiFetch<BaseResponse>(`/users/${id}/change-password`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(data),
+  });
+
 export default {
   getUsers,
   me,
   updateUserDetails,
   deleteAccount,
   removeProfileImage,
+  changePassword,
 };

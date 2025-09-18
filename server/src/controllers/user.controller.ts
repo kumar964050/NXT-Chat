@@ -193,6 +193,34 @@ const removeProfileImage = async (
     message: "Profile image has been removed successfully",
   });
 };
+const ChangePassword = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError("Un Authorization error", 400));
+  }
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id).select("+password");
+  if (!user) {
+    return next(new CustomError("User details not found", 404));
+  }
+
+  const isPasswordMatch = await user.comparePassword(currentPassword);
+  if (!isPasswordMatch) {
+    return next(new CustomError("Incorrect Current Password", 400));
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.json({
+    status: "success",
+    message: "Password updated successfully",
+  });
+};
 
 export default {
   getAllUsers,
@@ -202,4 +230,5 @@ export default {
   uploadProfileImage,
   deleteAccount,
   removeProfileImage,
+  ChangePassword,
 };
