@@ -65,7 +65,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const getLocalStream = async (type: CallType) => {
     const constraints = { audio: true, video: type === 'video' };
     const localStream = await navigator.mediaDevices.getUserMedia(constraints);
-    localStreamRef.current = await localStream;
+    localStreamRef.current = localStream;
 
     setTimeout(() => {
       if (localVideoRef.current) {
