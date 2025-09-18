@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import { ERROR_MESSAGES } from "../constants/messages";
 
 // TODO : implement errors for both Prod : dev mode here
 
@@ -13,7 +14,7 @@ const ErrorHandler: ErrorRequestHandler = (
 
   res.status(err.statusCode || 500).json({
     status: err.status || "error",
-    message: err.message || "server error",
+    message: err.message || ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
   });
 };
 

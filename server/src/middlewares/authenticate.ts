@@ -4,6 +4,7 @@ import User from "../models/user.model";
 import { AuthFileRequest, AuthRequest } from "../types";
 
 import CustomError from "../utils/CustomError";
+import { ERROR_MESSAGES } from "../constants/messages";
 
 async function Authenticate(
   req: AuthRequest | AuthFileRequest,
@@ -20,12 +21,12 @@ async function Authenticate(
 
   // if not token exist
   if (!token) {
-    return next(new CustomError("Please Login again", 401));
+    return next(new CustomError(ERROR_MESSAGES.INVALID_TOKEN, 401));
   }
 
   const decode = jwt.verify(token, process.env.JWT_SECRET as string);
   if (!decode) {
-    return next(new CustomError("Please Login again", 401));
+    return next(new CustomError(ERROR_MESSAGES.INVALID_TOKEN, 401));
   }
 
   const { id } = decode as { id: string };
@@ -33,7 +34,7 @@ async function Authenticate(
 
   // remove exist token and redirect to login
   if (!user) {
-    return next(new CustomError("User details not found", 404));
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
   req.user = user;
   next();

@@ -8,14 +8,14 @@ import { AuthRequest, AuthFileRequest } from "../types";
 import { uploadSingleFile } from "../config/cloudinary";
 import mongoose from "mongoose";
 
-//  get me
+//  get list of users
 const getAllUsers = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   const userId = new mongoose.Types.ObjectId(req.user.id);
@@ -60,7 +60,7 @@ const getAllUsers = async (
 
   res.json({
     status: "success",
-    message: "Fetched user profile successfully",
+    message: SUCCESS_MESSAGES.USERS_FETCHED,
     data: { users: result, results: result.length },
   });
 };
@@ -70,15 +70,19 @@ const getUserById = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   // get active accounts
   const user = await User.findById(req.params.id);
 
+  if (!user) {
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
+  }
+
   res.json({
     status: "success",
-    message: "Fetched user profile successfully",
+    message: SUCCESS_MESSAGES.USER_PROFILE_FETCHED,
     data: { user },
   });
 };
@@ -88,13 +92,13 @@ const getMyProfile = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   const { forgotPassword, ...user } = req.user.toObject();
   res.json({
     status: "success",
-    message: "Fetched user profile successfully",
+    message: SUCCESS_MESSAGES.MY_PROFILE_FETCHED,
     data: { user },
   });
 };
@@ -104,7 +108,7 @@ const updateUserDetails = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   const existingUser = await User.findOne({
@@ -131,7 +135,7 @@ const updateUserDetails = async (
 
   res.json({
     status: "success",
-    message: "updated user profile successfully",
+    message: SUCCESS_MESSAGES.USER_PROFILE_UPDATED,
     data: { user: req.user },
   });
 };
@@ -141,11 +145,11 @@ const uploadProfileImage = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   if (!req.files || !req.files?.profile) {
-    return next(new CustomError("Please provide profile image", 400));
+    return next(new CustomError(ERROR_MESSAGES.PROFILE_IMAGE_REQUIRED, 400));
   }
 
   const data = await uploadSingleFile(req.files.profile as any, "profile");
@@ -155,7 +159,7 @@ const uploadProfileImage = async (
 
   res.json({
     status: "success",
-    message: "profile image has been updated successfully",
+    message: SUCCESS_MESSAGES.PROFILE_IMAGE_UPDATED,
     data: { image: data },
   });
 };
@@ -165,7 +169,7 @@ const deleteAccount = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   req.user.is_active = false;
@@ -173,7 +177,7 @@ const deleteAccount = async (
 
   res.json({
     status: "success",
-    message: "Your Account Has been deleted successfully",
+    message: SUCCESS_MESSAGES.ACCOUNT_DELETED,
   });
 };
 const removeProfileImage = async (
@@ -182,7 +186,7 @@ const removeProfileImage = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   // will imp login here
@@ -190,7 +194,7 @@ const removeProfileImage = async (
 
   res.json({
     status: "success",
-    message: "Profile image has been removed successfully",
+    message: SUCCESS_MESSAGES.PROFILE_IMAGE_REMOVED,
   });
 };
 const ChangePassword = async (
@@ -199,30 +203,26 @@ const ChangePassword = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return next(
-      new CustomError("Current password and new password are required", 400)
-    );
+    return next(new CustomError(ERROR_MESSAGES.PASSWORD_REQUIRED, 400));
   }
 
   if (newPassword.length < 8) {
-    return next(
-      new CustomError("New password must be at least 8 characters long", 400)
-    );
+    return next(new CustomError(ERROR_MESSAGES.PASSWORD_MIN_LENGTH, 400));
   }
 
   const user = await User.findById(req.user._id).select("+password");
   if (!user) {
-    return next(new CustomError("User details not found", 404));
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
 
   const isPasswordMatch = await user.comparePassword(currentPassword);
   if (!isPasswordMatch) {
-    return next(new CustomError("Incorrect Current Password", 400));
+    return next(new CustomError(ERROR_MESSAGES.PASSWORD_INCORRECT, 400));
   }
 
   user.password = newPassword;
@@ -230,7 +230,7 @@ const ChangePassword = async (
 
   res.json({
     status: "success",
-    message: "Password updated successfully",
+    message: SUCCESS_MESSAGES.PASSWORD_CHANGED,
   });
 };
 export default {

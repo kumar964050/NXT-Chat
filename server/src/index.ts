@@ -1,15 +1,16 @@
 import "dotenv/config"; // Load env variables
-import { Server, Socket } from "socket.io";
 
+import { Server, Socket } from "socket.io";
 import connectDB from "./config/database";
 import User from "./models/user.model";
 import Message from "./models/message.model";
+import { ActiveUser, SocketMessage } from "./types";
+
 import app from "./app";
 
 const PORT: number = Number(process.env.PORT) || 3000;
-
 const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running at PORT : ${PORT}`);
+  console.log(`Server running at PORT : http://localhost:${PORT}`);
 });
 
 connectDB().catch((error) => {
@@ -22,48 +23,15 @@ const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-interface ActiveUser {
-  userId: string;
-  socketId: string;
-}
-interface SocketMessage {
-  id: string;
-  type: "text" | "image" | "video" | "audio" | "document" | "location";
-  from: string;
-  to: string;
-  content: string;
-  attachment?: {
-    id: string;
-    url: string;
-    name: string;
-    size: number;
-  };
-  location?: {
-    latitude: number;
-    longitude: number;
-    address?: string;
-  };
-  status: "sending" | "sent" | "delivered" | "read";
-  createdAt: string; // ISO-8601
-  updatedAt: string; // ISO-8601
-}
-interface CallProps {
-  callerId: string;
-  receiverId: string;
-  type: "audio" | "video";
-  offer?: RTCSessionDescriptionInit;
-  answer?: RTCSessionDescriptionInit;
-}
-
 // storing active users ids with socket id
-// TODO: need to improve: socketIds:[] to store multiple sockets id for multiple logins
 const activeUsers: ActiveUser[] = [];
 
-// add users to activeUsers & mark msg status as delivered(user got msgs) when user logged in
+//01) add users to activeUsers & mark msg status as delivered(user got msgs) when user logged in
 const addUser = async (userId: string, socketId: string) => {
   if (!activeUsers.some((user) => user.userId === userId)) {
     activeUsers.push({ userId: userId, socketId: socketId });
   }
+
   // mark sent msg status as delivered coz user logged in
   await Message.updateMany(
     { to: userId, status: { $eq: "sent" } },
@@ -71,20 +39,7 @@ const addUser = async (userId: string, socketId: string) => {
   );
 };
 
-// get user id by socket id
-const getUser = (socketId: string) => {
-  const user: ActiveUser | undefined = activeUsers.find(
-    (user) => user.socketId === socketId
-  );
-  return user ? user.userId : null;
-};
-//  get socket id by user id
-const getSocketId = (userId: string) => {
-  const user = activeUsers.find((user) => user.userId === userId);
-  return user ? user.socketId : null;
-};
-
-// remove user from activeUser arr & update user last seen in db
+//02) remove user from activeUser arr & update user last seen in db
 const removeUser = (socketId: string) => {
   const index = activeUsers.findIndex((user) => user.socketId === socketId);
   if (index === -1) return;
@@ -96,8 +51,22 @@ const removeUser = (socketId: string) => {
   })();
 };
 
+//03) get user id by socket id
+const getUser = (socketId: string) => {
+  const user: ActiveUser | undefined = activeUsers.find(
+    (user) => user.socketId === socketId
+  );
+  return user ? user.userId : null;
+};
+
+//04)  get socket id by user id
+const getSocketId = (userId: string) => {
+  const user = activeUsers.find((user) => user.userId === userId);
+  return user ? user.socketId : null;
+};
+
 io.on("connection", (socket: Socket) => {
-  //01) add user into active user arr list
+  // add user into active users list and send back active user list as arr
   socket.on("add-user", async (userId: string) => {
     try {
       await addUser(userId, socket.id);
@@ -107,7 +76,8 @@ io.on("connection", (socket: Socket) => {
       console.error("add-user failed:", err);
     }
   });
-  // send msg to to user
+
+  // send msg to (to user)
   socket.on("send-msg", (msg: SocketMessage) => {
     const toSocket = getSocketId(msg.to);
     if (toSocket) {
@@ -116,6 +86,7 @@ io.on("connection", (socket: Socket) => {
   });
 
   // mark msg status as a read when user open chat
+  // TODO : inform opposite user about msgs marked as delivered
   socket.on(
     "mark-as-read-msgs",
     async ({ from, to }: { from: string; to: string }) => {
@@ -126,16 +97,17 @@ io.on("connection", (socket: Socket) => {
     }
   );
 
-  //
+  // offer Call
   socket.on("call-user", (data) => {
-    // const fromSocket = getSocketId(data.callerId);
+    const fromSocket = getSocketId(data.callerId);
     const toSocket = getSocketId(data.receiverId);
-    if (toSocket) io.to(toSocket).emit("incoming-call", data);
-    // else {
-    //   setTimeout(() => {
-    //     if (fromSocket) io.to(fromSocket).emit("end-call");
-    //   }, 8000);
-    // }
+    if (toSocket) {
+      io.to(toSocket).emit("incoming-call", data);
+    } else {
+      setTimeout(() => {
+        if (fromSocket) io.to(fromSocket).emit("end-call");
+      }, 8000);
+    }
   });
 
   // Answer call
@@ -144,7 +116,7 @@ io.on("connection", (socket: Socket) => {
     if (toSocket) io.to(toSocket).emit("call-answered", data);
   });
 
-  // Relay ICE candidates
+  //  ICE candidates
   socket.on("ice-candidate", ({ to, candidate }) => {
     const targetSocket = getSocketId(to);
     if (targetSocket) {

@@ -4,30 +4,32 @@ import CustomError from "../utils/CustomError";
 import Messages from "../models/message.model";
 
 import { uploadSingleFile } from "../config/cloudinary";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "../constants/messages";
 
 //  add new msg
 const addMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
   const newMsg = await Messages.create(req.body);
   res.json({
     status: "success",
-    message: "message added successfully",
+    message: SUCCESS_MESSAGES.MESSAGE_SENT,
     data: { message: newMsg },
   });
 };
+
 const uploadFileMsg = async (
   req: AuthFileRequest,
   res: Response,
   next: NextFunction
 ) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   if (!req.files || !req.files?.file) {
-    return next(new CustomError("Please provide file", 400));
+    return next(new CustomError(ERROR_MESSAGES.MESSAGE_FILE_REQUIRED, 400));
   }
 
   const dirname = `messages/${req.body.type}`;
@@ -35,19 +37,18 @@ const uploadFileMsg = async (
 
   res.json({
     status: "success",
-    message: "file uploaded successfully",
+    message: SUCCESS_MESSAGES.FILE_UPLOADED,
     data: { file: data },
   });
 };
 
 const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return next(new CustomError("Un Authorization error", 400));
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
   const chatId = String(req.query.chatId || "");
-
-  if (!chatId) return res.status(400).json({ error: "chatId required" });
+  if (!chatId) return next(new CustomError("Receiver Id Required", 400));
 
   const query: any = {
     $or: [
@@ -60,7 +61,7 @@ const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
 
   res.json({
     status: "success",
-    message: "get messages successfully",
+    message: SUCCESS_MESSAGES.MESSAGES_FETCHED,
     data: { messages },
   });
 };

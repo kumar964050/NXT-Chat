@@ -12,7 +12,7 @@ const emailService = new EmailService();
 const register = async (req: Request, res: Response, next: NextFunction) => {
   const findUser = await User.findOne({
     $or: [{ username: req.body.username }, { email: req.body.email }],
-    //    is_deleted: false,
+    // is_deleted: false,
   });
 
   if (findUser) {
@@ -46,12 +46,12 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   }).select("+password");
 
   if (!findUser) {
-    return next(new CustomError("User not found", 404));
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
 
   const compared = await findUser.comparePassword(req.body.password);
   if (!compared) {
-    return next(new CustomError("Invalid Password ", 401));
+    return next(new CustomError(ERROR_MESSAGES.INVALID_CREDENTIALS, 401));
   }
 
   // user not verified email send verify email
@@ -65,7 +65,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
   res.json({
     status: "success",
-    message: "Success",
+    message: SUCCESS_MESSAGES.LOGIN_SUCCESS,
     token,
     data: { user: userData },
   });
@@ -81,7 +81,7 @@ const forgotPassword = async (
     //    is_deleted: false,
   });
   if (!user) {
-    return next(new CustomError("user details not found", 404));
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
 
   try {
@@ -97,7 +97,7 @@ const forgotPassword = async (
     console.log(link);
     res.json({
       status: "success",
-      message: "successfully send reset link to email id",
+      message: SUCCESS_MESSAGES.FORGOT_PASSWORD_EMAIL_SENT,
     });
   } catch (error: any) {
     user.forgotPassword = { expiry: null, token: null };
@@ -117,7 +117,7 @@ const resetPassword = async (
   });
 
   if (!user) {
-    return next(new CustomError("User details Not found", 404));
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
 
   user.password = req.body.password;
@@ -127,7 +127,7 @@ const resetPassword = async (
 
   res.json({
     status: "success",
-    message: "Password reset successfully",
+    message: SUCCESS_MESSAGES.PASSWORD_RESET,
   });
 };
 
