@@ -12,7 +12,6 @@ const Active = () => {
     currentCall,
     isMuted,
     localVideoRef,
-    localStreamRef,
     remoteVideoRef,
     toggleMute,
     isVideoOff,
@@ -23,17 +22,33 @@ const Active = () => {
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  const getCallStatusText = (status) => {
+    switch (status) {
+      case 'ringing':
+        return 'Calling...';
+      case 'ongoing':
+        return 'ongoing';
+      case 'ended':
+        return 'Call ended';
+      default:
+        return 'Connecting...';
+    }
+  };
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleMouseDown = (e: React.MouseEvent<HTMLVideoElement>) => {
     setDragging(true);
     setOffset({ x: e.clientX - position.x, y: e.clientY - position.y });
   };
-
   const handleMouseMove = (e: MouseEvent) => {
     if (dragging) {
       setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
     }
   };
-
   const handleMouseUp = () => setDragging(false);
 
   useEffect(() => {
@@ -46,32 +61,10 @@ const Active = () => {
   }, [dragging, offset]);
 
   if (!currentCall) return null;
-  const contact = contacts.find((c) => {
-    return c._id === currentCall.receiverId || c._id === currentCall.callerId;
-  });
+  const contact = contacts.find(
+    (c) => c._id === currentCall.receiverId || c._id === currentCall.callerId
+  );
 
-  const handleEndCall = () => declineCall();
-
-  const getCallStatusText = () => {
-    switch (currentCall.status) {
-      case 'ringing':
-        return 'Calling...';
-      case 'ongoing':
-        return 'ongoing';
-      case 'ended':
-        return 'Call ended';
-      default:
-        return 'Connecting...';
-    }
-  };
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const type = currentCall.type;
   return (
     <div className="fixed inset-0 bg-gradient-primary z-50 flex flex-col">
       {/* header */}
@@ -88,26 +81,30 @@ const Active = () => {
           </Avatar>
         </div>
         <div>
-          <h2 className="text-lg font-semibold ">{contact?.name || 'Unknown Contact'}</h2>
-          <p className="text-sm text-primary-foreground/80">{getCallStatusText()}</p>
+          <h2 className="text-lg font-semibold text-white ">
+            {contact?.name || 'Unknown Contact'}
+          </h2>
+          <p className="text-sm text-primary-foreground/80">
+            {getCallStatusText(currentCall.status)}
+          </p>
           <p className="text-xs text-primary-foreground/80">{formatDuration(callDuration)}</p>
         </div>
       </div>
 
+      {/* remote audio */}
+      {currentCall.type === 'audio' && <audio ref={remoteVideoRef} autoPlay playsInline />}
       {/* remote video */}
-      {type === 'video' && (
-        <div className="">
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="absolute z-10 bg-black top-0 bottom-0 left-0 right-0 h-screen w-screen object-cover"
-          />
-        </div>
+      {currentCall.type === 'video' && (
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className="absolute z-10 bg-black top-0 bottom-0 left-0 right-0 h-screen w-screen object-cover"
+        />
       )}
 
       {/* local video */}
-      {type === 'video' && (
+      {currentCall.type === 'video' && (
         <div>
           <video
             onMouseDown={handleMouseDown}
@@ -151,7 +148,7 @@ const Active = () => {
             size="lg"
             variant="destructive"
             className="rounded-full cursor-pointer h-16 w-16"
-            onClick={handleEndCall}
+            onClick={declineCall}
           >
             <FiPhoneOff className="h-6 w-6" />
           </Button>
