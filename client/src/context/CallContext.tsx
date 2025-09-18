@@ -1,6 +1,7 @@
-import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
+import { createContext, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
 import useSocket from '@/hooks/useSocket';
 import useAuth from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 type CallType = 'audio' | 'video';
 type CallStatus = 'calling' | 'ringing' | 'ongoing' | 'incoming' | 'outgoing' | 'ended';
@@ -22,6 +23,7 @@ interface CallContextType {
   isMuted: boolean;
   isVideoOff: boolean;
   callDuration: number;
+  localStreamRef: RefObject<MediaStream> | null;
   localVideoRef: React.RefObject<HTMLVideoElement>;
   remoteVideoRef: React.RefObject<HTMLVideoElement>;
   startCall: (receiverId: string, type: CallType) => Promise<void>;
@@ -41,6 +43,7 @@ const ICE_CONFIG: RTCConfiguration = {
 export const CallProvider = ({ children }: { children: ReactNode }) => {
   const { socket } = useSocket();
   const { userDetails } = useAuth();
+  const { toast } = useToast();
 
   const [currentCall, setCurrentCall] = useState<CurrentCallProps | null>(null);
   const [isOutgoing, setIsOutgoing] = useState(false);
@@ -78,21 +81,21 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const createPeerConnection = (remoteUserId: string) => {
     const peer = new RTCPeerConnection(ICE_CONFIG);
 
-    // add local tracks once
+    // local stream add into peer
     localStreamRef.current?.getTracks().forEach((track) => {
-      console.log('📹 Adding local track:', track.kind);
       peer.addTrack(track, localStreamRef.current as MediaStream);
     });
 
+    // remote stream
     peer.ontrack = (event) => {
       setTimeout(() => {
         if (remoteVideoRef.current) {
-          console.log('📡 Remote stream received:', event.streams);
           remoteVideoRef.current.srcObject = event.streams[0];
         }
       }, 1000);
     };
 
+    // ICE
     peer.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit('ice-candidate', {
@@ -102,8 +105,8 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
+    // Connection Status
     peer.oniceconnectionstatechange = () => {
-      console.log('ICE connection state:', peer.iceConnectionState);
       if (['failed', 'disconnected', 'closed'].includes(peer.iceConnectionState)) {
         endCall();
       }
@@ -135,7 +138,11 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       setCurrentCall(callUserData);
       setIsOutgoing(true);
     } catch (err) {
-      console.error('startCall error', err);
+      toast({
+        variant: 'destructive',
+        title: 'Call Error',
+        description: err.message,
+      });
     }
   };
 
@@ -178,6 +185,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     });
     endCall();
   };
+
   // end call
   const endCall = () => {
     peerRef.current?.close();
@@ -289,6 +297,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     isMuted,
     isVideoOff,
     callDuration,
+    localStreamRef,
     localVideoRef,
     remoteVideoRef,
     startCall,

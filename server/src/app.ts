@@ -11,7 +11,7 @@ const app: Application = express();
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 app.use(morgan("dev"));
-app.use(cors());
+app.use(cors({ origin: "*" }));
 
 // API Routes
 app.use("/api", apiRoutes);

@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi';
 import useContacts from '@/hooks/useContacts';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
+import { useEffect, useState } from 'react';
 
 const Active = () => {
   const {
@@ -11,12 +12,38 @@ const Active = () => {
     currentCall,
     isMuted,
     localVideoRef,
+    localStreamRef,
     remoteVideoRef,
     toggleMute,
     isVideoOff,
     toggleVideo,
   } = useCall();
   const { contacts } = useContacts();
+  const [position, setPosition] = useState({ x: 10, y: 10 });
+  const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLVideoElement>) => {
+    setDragging(true);
+    setOffset({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (dragging) {
+      setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    }
+  };
+
+  const handleMouseUp = () => setDragging(false);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, offset]);
 
   if (!currentCall) return null;
   const contact = contacts.find((c) => {
@@ -83,11 +110,13 @@ const Active = () => {
       {type === 'video' && (
         <div>
           <video
+            onMouseDown={handleMouseDown}
             ref={localVideoRef}
             autoPlay
             playsInline
             muted
-            className="fixed bg-black border-2 object-cover border-border rounded-lg z-50  bottom-0 right-0 w-30 md:w-80 md:h-50"
+            className="fixed bg-black border-2 object-cover border-border/20 rounded-lg z-50  bottom-0 right-0 w-30 md:w-80 md:h-50"
+            style={{ top: position.y, left: position.x, zIndex: 1000, cursor: 'move' }}
           />
         </div>
       )}

@@ -1,5 +1,6 @@
-import "dotenv/config"; // Load environment variables
+import "dotenv/config"; // Load env variables
 import { Server, Socket } from "socket.io";
+
 import connectDB from "./config/database";
 import User from "./models/user.model";
 import Message from "./models/message.model";
@@ -50,11 +51,12 @@ interface CallProps {
   callerId: string;
   receiverId: string;
   type: "audio" | "video";
-  offer: RTCSessionDescriptionInit;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
 }
 
 // storing active users ids with socket id
-// need to improve: socketIds:[] to store multiple sockets id for multiple logins
+// TODO: need to improve: socketIds:[] to store multiple sockets id for multiple logins
 const activeUsers: ActiveUser[] = [];
 
 // add users to activeUsers & mark msg status as delivered(user got msgs) when user logged in
