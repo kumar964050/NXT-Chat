@@ -1,6 +1,9 @@
 import { useState } from 'react';
+
+// components
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
+// icons
 import { FiSmile } from 'react-icons/fi';
 
 interface EmojiPickerProps {

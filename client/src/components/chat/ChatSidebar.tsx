@@ -1,10 +1,16 @@
 import { useState } from 'react';
+// lib
+import { useNavigate, useParams } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
+
+// components
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { FiSearch, FiMoreVertical } from 'react-icons/fi';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow } from 'date-fns';
-import { useNavigate, useParams } from 'react-router-dom';
+
+// icons
+import { FiSearch, FiMoreVertical } from 'react-icons/fi';
+// hooks
 import useAuth from '@/hooks/useAuth';
 import useSocket from '@/hooks/useSocket';
 import useContacts from '@/hooks/useContacts';

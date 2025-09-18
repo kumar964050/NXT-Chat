@@ -13,12 +13,19 @@ import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
 // types
-import { UserWithTokenResponse } from '@/types';
+import { UserResponse } from '@/types/responses';
+import { RegisterFormDataProps } from '@/types/auth';
+
 // apis
-import AuthApis from '@/apis/auth';
+import AuthenticationApi from '@/apis/auth';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const [formData, setFormData] = useState<RegisterFormDataProps>({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -31,12 +38,12 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    // TODO: validation here
     try {
-      const data: UserWithTokenResponse = await AuthApis.register(formData);
+      setIsLoading(true);
+      const data: UserResponse = await AuthenticationApi.register(formData);
 
       if (data.status === 'success') {
-        // adding in auth context
         Cookies.set('token', data.token, { expires: 7 });
         handleAddUser(data.data.user);
 

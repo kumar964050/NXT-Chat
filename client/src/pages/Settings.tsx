@@ -1,6 +1,9 @@
 import { useState } from 'react';
+
+// lib
 import { Link, useNavigate } from 'react-router-dom';
 
+// components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
@@ -11,7 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../components/ui/select';
+
+// icons
 import { FiArrowLeft, FiUser, FiLogOut } from 'react-icons/fi';
+// hooks
 import { useToast } from '../hooks/use-toast';
 import useTheme from '@/hooks/useTheme';
 import useAuth from '@/hooks/useAuth';

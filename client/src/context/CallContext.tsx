@@ -1,8 +1,11 @@
 import { createContext, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
+
+// Hooks
 import useSocket from '@/hooks/useSocket';
 import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
+// types
 type CallType = 'audio' | 'video';
 type CallStatus = 'calling' | 'ringing' | 'ongoing' | 'incoming' | 'outgoing' | 'ended';
 

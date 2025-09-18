@@ -1,6 +1,9 @@
+// components
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { Button } from '../ui/button';
+// icons
 import { FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff } from 'react-icons/fi';
+// hooks
 import useCall from '@/hooks/useCall';
 import useContacts from '@/hooks/useContacts';
 

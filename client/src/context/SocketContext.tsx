@@ -1,8 +1,12 @@
+import { createContext, useEffect, useRef, useState } from 'react';
+
+// lib
+import { io, Socket } from 'socket.io-client';
+// hooks
 import useAuth from '@/hooks/useAuth';
 import useContacts from '@/hooks/useContacts';
-import { createContext, useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
 
+// BASE SERVER URL
 const SOCKET_URL = import.meta.env.VITE_BASE_URL;
 
 interface SocketProviderProps {
@@ -18,6 +22,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const { userDetails } = useAuth();
   const { handleUserWentToOffline, handleUpdateLastMsg } = useContacts();
 
+  // connecting to socket
   if (!socketRef.current) {
     socketRef.current = io(SOCKET_URL, { autoConnect: true });
   }
@@ -27,7 +32,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     activeUsers,
   };
 
-  // clean up fun
+  // cleanup function
   useEffect(() => {
     const socket = socketRef.current;
 
@@ -36,14 +41,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  // adding user id in socket list
+  // Registering User in Socket : adding user id in socket list
   useEffect(() => {
     if (!userDetails) return;
     if (!socketRef.current) return;
     socketRef.current.emit('add-user', userDetails._id);
   }, [userDetails]);
 
-  // get active users ids as arr
+  // GET List of Active User as arr from SOCKET
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current.on('get-users', (data) => {
@@ -51,7 +56,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  // user went to offline
+  // GET USER WENT Offline from SOCKET
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current.on('user-offline', (data) => {
@@ -59,7 +64,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
-  //read msg from socket to update in contact last msg
+  //READ MSG From SOCKET TO Update in contacts as last msg
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current.on('get-msg', (msg) => {

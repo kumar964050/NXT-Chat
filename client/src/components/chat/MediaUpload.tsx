@@ -1,18 +1,22 @@
 import { useState, useRef } from 'react';
-
+// lib
+import Cookies from 'js-cookie';
+// components
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
+// icons
 import { FiPaperclip, FiImage, FiFileText, FiMapPin, FiVideo } from 'react-icons/fi';
+// hooks
 import { useToast } from '@/hooks/use-toast';
-import { fileUploadResponse } from '@/types';
-import Cookies from 'js-cookie';
+// types
+import { FileUploadResponse } from '@/types/responses';
 
 interface MediaUploadProps {
-  handleFileUploadMsg: (data: fileUploadResponse) => void;
+  handleFileUploadMsg: (data: FileUploadResponse) => void;
   handleLocationShareMsg: (latitude: number, longitude: number) => void;
 }
 
-// sendMessage;
+// TODO: imp camera
 const MediaUpload = ({ handleFileUploadMsg, handleLocationShareMsg }: MediaUploadProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -20,6 +24,7 @@ const MediaUpload = ({ handleFileUploadMsg, handleLocationShareMsg }: MediaUploa
   const videoInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // upload file to server and get res obj
   const handleFileUpload = async (file: File, type: 'image' | 'video' | 'document' | 'audio') => {
     const token = Cookies.get('token');
     const formData = new FormData();
@@ -38,6 +43,7 @@ const MediaUpload = ({ handleFileUploadMsg, handleLocationShareMsg }: MediaUploa
     });
     const data = await res.json();
 
+    // send res obj tp send
     handleFileUploadMsg({
       id: data.data.file.id,
       url: data.data.file.url,

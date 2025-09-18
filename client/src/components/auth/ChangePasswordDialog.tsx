@@ -1,8 +1,12 @@
 import { useState } from 'react';
+
+// lib
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import Cookies from 'js-cookie';
 
+// components
 import {
   Dialog,
   DialogContent,
@@ -15,12 +19,15 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
+// icons
 import { FiEye, FiEyeOff, FiLock } from 'react-icons/fi';
-
+// APIS
 import userApi from '@/apis/users';
-import Cookies from 'js-cookie';
+// types
+import { BaseResponse } from '@/types/responses';
+
+// Hooks
 import useAuth from '@/hooks/useAuth';
-import { BaseResponse } from '@/types';
 
 const changePasswordSchema = z
   .object({
@@ -60,7 +67,7 @@ export const ChangePasswordDialog = ({ children }: ChangePasswordDialogProps) =>
   const onSubmit = async (formData: ChangePasswordFormData) => {
     try {
       //
-
+      setIsLoading(true);
       const token = Cookies.get('token');
       const data: BaseResponse = await userApi.changePassword(token, userDetails._id, formData);
       if (data.status === 'success') {
@@ -83,6 +90,8 @@ export const ChangePasswordDialog = ({ children }: ChangePasswordDialogProps) =>
         description: error.message as string,
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(true);
     }
   };
 

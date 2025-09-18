@@ -1,7 +1,8 @@
-// src/components/call/Overlay.tsx
+// components
 import IncomingCall from './Incoming';
 import Outgoing from './Outgoing';
 import Active from './Active';
+// hooks
 import useCall from '@/hooks/useCall';
 
 const Overlay = () => {

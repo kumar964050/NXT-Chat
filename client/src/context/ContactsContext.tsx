@@ -1,11 +1,18 @@
 import { createContext, FC, ReactNode, useEffect, useState, useMemo } from 'react';
 
-import { User, Message } from '@/types';
+// lib
 import Cookies from 'js-cookie';
+import { useParams } from 'react-router-dom';
+
+// APIS
 import UserApis from '@/apis/users';
+// Hooks
 import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useParams } from 'react-router-dom';
+
+// types
+import { User } from '@/types/user';
+import { Message } from '@/types/message';
 
 interface ContactsContextType {
   contacts: User[];
@@ -26,7 +33,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
   const { chatId } = useParams();
   const { toast } = useToast();
 
-  // get contacts list from server
+  //API Call : get contacts list from server
   useEffect(() => {
     if (!userDetails) return;
 
@@ -46,6 +53,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
     })();
   }, [userDetails]);
 
+  // update last seen in contacts
   const handleUserWentToOffline = (userId: string) => {
     setContacts((prev: User[]): User[] => {
       return prev.map((user) => {
@@ -60,6 +68,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
     });
   };
 
+  // update last msg in contacts
   const handleUpdateLastMsg = (msg: Message) => {
     setContacts((prev) =>
       prev.map((contact) => {
@@ -80,6 +89,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
     }
   };
 
+  // sorting contacts based on last msg timestamp
   const sortedContacts = useMemo(() => {
     return [...contacts].sort((a, b) => {
       const aTime = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;

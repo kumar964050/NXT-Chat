@@ -1,8 +1,7 @@
-// src/context/ThemeContext.tsx
 import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 
+// types
 type Theme = 'light' | 'dark' | 'system';
-// will add more theme here
 
 interface ThemeContextType {
   theme: Theme;
@@ -20,7 +19,7 @@ const defaultTheme = localStorage.getItem('theme') as Theme;
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
 
-  // Optional: load theme from localStorage
+  //  load theme from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme) setTheme(savedTheme);
@@ -42,9 +41,7 @@ export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
   }, [theme]);
 
   // change theme
-  const handleChangeTheme = (theme) => {
-    setTheme(theme);
-  };
+  const handleChangeTheme = (theme) => setTheme(theme);
 
   return (
     <ThemeContext.Provider value={{ theme, handleChangeTheme }}>{children}</ThemeContext.Provider>

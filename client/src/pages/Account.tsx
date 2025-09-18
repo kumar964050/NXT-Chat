@@ -1,18 +1,25 @@
 import { useRef, useState } from 'react';
+// lib
+import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
+// components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { ChangePasswordDialog } from '@/components/auth/ChangePasswordDialog';
+// icons
 import { FiArrowLeft, FiCamera, FiSave, FiTrash2 } from 'react-icons/fi';
+// hooks
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
+// APIS
 import UserApis from '@/apis/users';
-import Cookies from 'js-cookie';
-import { UserResponse } from '@/types';
-import { ChangePasswordDialog } from '@/components/auth/ChangePasswordDialog';
+// types
+import { UserResponse, BaseResponse } from '@/types/responses';
+import { UpdateUserFormDataProps } from '@/types/user';
 
 const Account = () => {
   const navigate = useNavigate();
@@ -21,7 +28,7 @@ const Account = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<UpdateUserFormDataProps>({
     name: userDetails?.name || '',
     username: userDetails?.username || '',
     email: userDetails?.email || '',
@@ -59,7 +66,7 @@ const Account = () => {
     imageInputRef.current?.click();
   };
 
-  const handleUpdateProfileImage = async (file) => {
+  const handleUpdateProfileImage = async (file: File) => {
     try {
       setIsLoading(true);
       toast({
@@ -106,7 +113,7 @@ const Account = () => {
   const handleDeleteAccount = async () => {
     try {
       const token = Cookies.get('token');
-      const data = await UserApis.deleteAccount(token, userDetails._id);
+      const data: BaseResponse = await UserApis.deleteAccount(token, userDetails._id);
       if (data.status === 'success') {
         toast({
           title: 'Account Deleted',

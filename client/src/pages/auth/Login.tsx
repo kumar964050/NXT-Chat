@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 // icons
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
-// types
-import { UserWithTokenResponse } from '@/types';
 // apis
-import AuthApis from '@/apis/auth';
+import AuthenticationApis from '@/apis/auth';
+// types
+import { UserResponse } from '@/types/responses';
+import { LoginFormDataProps } from '@/types/auth';
 // hooks
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
@@ -31,13 +32,13 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      const data: UserWithTokenResponse = await AuthApis.login({
+      const formData: LoginFormDataProps = {
         identity: email.toLowerCase().trim(),
         password: password,
-      });
+      };
+      const data: UserResponse = await AuthenticationApis.login(formData);
 
       if (data.status === 'success') {
-        // adding in auth context
         Cookies.set('token', data.token, { expires: 7 });
         handleAddUser(data.data.user);
 

@@ -1,8 +1,11 @@
+// lib
 import { Link } from 'react-router-dom';
-
+// components
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+// icons
 import { FiMessageSquare, FiVideo, FiShield, FiUsers, FiZap, FiHeart } from 'react-icons/fi';
+// hooks
 import useAuth from '@/hooks/useAuth';
 
 const Home = () => {

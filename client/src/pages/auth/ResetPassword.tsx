@@ -1,14 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
+// components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// icons
 import { FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
+// hooks
 import { useToast } from '@/hooks/use-toast';
-import { BaseResponse } from '@/types';
-import AuthApis from '@/apis/auth';
+// api
+import AuthenticationApi from '@/apis/auth';
+// types
+import { BaseResponse } from '@/types/responses';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -45,11 +50,11 @@ const ResetPassword = () => {
     }
 
     try {
-      const data: BaseResponse = await AuthApis.resetPassword(token, password);
+      const data: BaseResponse = await AuthenticationApi.resetPassword(token, password);
       if (data.status === 'success') {
         toast({
           title: 'Password reset successful!',
-          description: 'You can now sign in with your new password.',
+          description: data.message || 'You can now sign in with your new password.',
         });
         setTimeout(() => {
           navigate('/auth/login');

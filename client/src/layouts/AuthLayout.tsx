@@ -1,7 +1,8 @@
 import { Outlet, Navigate } from 'react-router-dom';
 
-import AuthAside from '@/components/AuthAside';
-//
+// components
+import AuthAside from '@/components/auth/AuthAside';
+//hooks
 import useAuth from '@/hooks/useAuth';
 
 const AuthLayout = () => {

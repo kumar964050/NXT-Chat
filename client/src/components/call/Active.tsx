@@ -1,9 +1,13 @@
-import useCall from '@/hooks/useCall';
-import { Button } from '../ui/button';
-import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi';
-import useContacts from '@/hooks/useContacts';
-import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
 import { useEffect, useState } from 'react';
+
+// components
+import { Button } from '../ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
+// hooks
+import useContacts from '@/hooks/useContacts';
+import useCall from '@/hooks/useCall';
+// icons
+import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiPhoneOff } from 'react-icons/fi';
 
 const Active = () => {
   const {

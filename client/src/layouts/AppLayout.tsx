@@ -1,5 +1,5 @@
 import { FC } from 'react';
-//
+//lib
 import { Outlet } from 'react-router-dom';
 
 // components

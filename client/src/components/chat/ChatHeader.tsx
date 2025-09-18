@@ -1,12 +1,15 @@
-import { Button } from '../ui/button';
-import { FiPhone, FiVideo, FiArrowLeft } from 'react-icons/fi';
+// lib
 import { formatDistanceToNow } from 'date-fns';
-// import { setActiveChat } from '../../store/slices/chatSlice';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
+
+// Components
+import { Button } from '../ui/button';
 import ChatHeaderMenu from './ChatHeaderMenu';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
-
+// icons
+import { FiPhone, FiVideo, FiArrowLeft } from 'react-icons/fi';
+// hooks
 import useContacts from '@/hooks/useContacts';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import useSocket from '@/hooks/useSocket';
 import useCall from '@/hooks/useCall';
 

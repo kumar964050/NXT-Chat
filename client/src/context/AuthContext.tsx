@@ -1,9 +1,12 @@
 import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 
-import { User } from '@/types';
+// lib
 import Cookies from 'js-cookie';
-import UserApis from '@/apis/users';
 import { useNavigate } from 'react-router-dom';
+// types
+import { User } from '@/types/user';
+// APIS
+import UserApis from '@/apis/users';
 
 interface AuthContextType {
   userDetails: User;
@@ -35,7 +38,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove('token');
   };
 
-  //
+  // get token from cookies & do api call to get user from server
   useEffect(() => {
     (async () => {
       try {

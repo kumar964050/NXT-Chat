@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+
+// components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+// icons
 import { FiMail, FiArrowLeft, FiLock } from 'react-icons/fi';
+// apis
+import AuthenticationAPi from '@/apis/auth';
+// types
+import { BaseResponse } from '@/types/responses';
+// hooks
 import { useToast } from '@/hooks/use-toast';
-import { BaseResponse } from '@/types';
-import AuthApis from '@/apis/auth';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -19,12 +25,12 @@ const ForgotPassword = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const data: BaseResponse = await AuthApis.forgotPassword(email);
+      const data: BaseResponse = await AuthenticationAPi.forgotPassword(email);
       if (data.status === 'success') {
         setIsSubmitted(true);
         toast({
           title: 'Reset link sent!',
-          description: 'Check your email for password reset instructions.',
+          description: data.message || 'Check your email for password reset instructions.',
         });
       } else {
         toast({

@@ -1,20 +1,21 @@
 import { apiFetch } from './index';
-import { messagesResponse, Message, messageResponse } from '@/types';
+import { MessagesResponse, MessageResponse } from '@/types/responses';
+import { Message } from '@/types/message';
 
 const addMsg = (token, data: Message) =>
-  apiFetch<messageResponse>('/messages', {
+  apiFetch<MessageResponse>('/messages', {
     method: 'POST',
     token,
     body: JSON.stringify(data),
   });
 
 const getMsgs = (token: string, chatId: string) =>
-  apiFetch<messagesResponse>(`/messages?chatId=${chatId}`, {
+  apiFetch<MessagesResponse>(`/messages?chatId=${chatId}`, {
     method: 'GET',
     token,
   });
 const uploadFileMsg = (token: string, file) =>
-  apiFetch<messagesResponse>(`/messages/file`, {
+  apiFetch<MessageResponse>(`/messages/file`, {
     method: 'POST',
     token,
     headers: { 'content-type': 'form/data' },

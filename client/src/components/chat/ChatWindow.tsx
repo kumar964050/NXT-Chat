@@ -1,24 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
+// lib
+import { isToday, isYesterday, format } from 'date-fns';
+import { useParams } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import { v4 as uuidV4 } from 'uuid';
+// components
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FiSend } from 'react-icons/fi';
-import { isToday, isYesterday, format } from 'date-fns';
-import { fileUploadResponse, Message, messageResponse, messagesResponse } from '@/types';
-import useAuth from '@/hooks/useAuth';
-import { useParams } from 'react-router-dom';
 import MediaUpload from './MediaUpload';
 import EmojiPicker from './EmojiPicker';
 import ChatHeader from './ChatHeader';
 
-import msgAPis from '@/apis/messages';
-import Cookies from 'js-cookie';
+// icons
+import { FiSend } from 'react-icons/fi';
+import { BiCheckDouble } from 'react-icons/bi';
+import { IoCheckmarkDoneCircleOutline, IoCheckmarkOutline } from 'react-icons/io5';
+
+// types
+import { FileUploadResponse, MessageResponse, MessagesResponse } from '@/types/responses';
+import { Message } from '@/types/message';
+
+// hooks
+import useAuth from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import useSocket from '@/hooks/useSocket';
 import useContacts from '@/hooks/useContacts';
-import { v4 as uuidV4 } from 'uuid';
-
-import { BiCheckDouble } from 'react-icons/bi';
-import { IoCheckmarkDoneCircleOutline, IoCheckmarkOutline } from 'react-icons/io5';
+// APIS
+import msgAPis from '@/apis/messages';
 
 const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
@@ -37,7 +45,7 @@ const ChatWindow = () => {
     if (!activeChat || !currentUser) return;
     (async () => {
       const token = Cookies.get('token');
-      const data: messagesResponse = await msgAPis.getMsgs(token, activeChat);
+      const data: MessagesResponse = await msgAPis.getMsgs(token, activeChat);
       if (data.status === 'success') {
         setMessages(data.data.messages);
       }
@@ -57,7 +65,7 @@ const ChatWindow = () => {
   const handleSendMsg = async (msg: Message) => {
     socket.emit('send-msg', msg);
     handleUpdateLastMsg(msg);
-    const data: messageResponse = await msgAPis.addMsg(token, msg);
+    const data: MessageResponse = await msgAPis.addMsg(token, msg);
     if (data.status === 'success') {
       setMessages((prev) => [...prev, msg]);
       setNewMessage('');
@@ -89,7 +97,7 @@ const ChatWindow = () => {
   };
 
   //02) file msg send also vth socket
-  const handleFileUploadMsg = async (file: fileUploadResponse) => {
+  const handleFileUploadMsg = async (file: FileUploadResponse) => {
     const msg: Message = {
       id: uuidV4(),
       type: file.type,

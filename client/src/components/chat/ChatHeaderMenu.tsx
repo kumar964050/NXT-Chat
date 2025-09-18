@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
+
+// components
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,6 +10,9 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
+import ContactProfile from './ContactProfile';
+
+// icons
 import {
   FiMoreVertical,
   FiUser,
@@ -16,9 +22,9 @@ import {
   FiTrash2,
   FiFlag,
 } from 'react-icons/fi';
-import ContactProfile from './ContactProfile';
+
+// hooks
 import useContacts from '@/hooks/useContacts';
-import { Navigate } from 'react-router-dom';
 
 interface ChatHeaderMenuProps {
   contactId: string;

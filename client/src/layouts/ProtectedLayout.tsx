@@ -1,5 +1,7 @@
 import { FC, ReactNode } from 'react';
+// lib
 import { Navigate, useLocation } from 'react-router-dom';
+// components
 import useAuth from '@/hooks/useAuth';
 
 interface ProtectedLayoutProps {

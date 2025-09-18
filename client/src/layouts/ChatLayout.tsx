@@ -1,12 +1,16 @@
 import { FC } from 'react';
+// lib
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import ChatSidebar from '@/components/chat/ChatSidebar';
 
+// components
+import ChatSidebar from '@/components/chat/ChatSidebar';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
-import useAuth from '@/hooks/useAuth';
 import CallOverlay from '@/components/call/Overlay';
+// icons
+import { FiSettings, FiLogOut, FiUser } from 'react-icons/fi';
+// hooks
+import useAuth from '@/hooks/useAuth';
 
 const ChatLayout: FC = () => {
   const { pathname } = useLocation();
