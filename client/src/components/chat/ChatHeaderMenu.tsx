@@ -82,12 +82,12 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
           <FiUser className="mr-2 h-4 w-4" />
           View Profile
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleSearchMessages}>
+        {/* <DropdownMenuItem onClick={handleSearchMessages}>
           <FiSearch className="mr-2 h-4 w-4" />
           Search Messages
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleMuteToggle}>
+        </DropdownMenuItem> */}
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuItem onClick={handleMuteToggle}>
           {isMuted ? (
             <>
               <FiVolume2 className="mr-2 h-4 w-4" />
@@ -99,7 +99,7 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
               Mute
             </>
           )}
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={handleClearChat}>
           <FiTrash2 className="mr-2 h-4 w-4" />
           Clear Chat

@@ -6,13 +6,37 @@ import { FiPhoneOff, FiMic, FiMicOff, FiVideo, FiVideoOff } from 'react-icons/fi
 // hooks
 import useCall from '@/hooks/useCall';
 import useContacts from '@/hooks/useContacts';
+import { useEffect, useState } from 'react';
 
 const Outgoing = () => {
   const { currentCall, isMuted, isVideoOff, toggleMute, toggleVideo, localVideoRef, declineCall } =
     useCall();
   const { contacts } = useContacts();
-  if (!currentCall) return null;
+  const [position, setPosition] = useState({ x: 10, y: 10 });
+  const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLVideoElement>) => {
+    setDragging(true);
+    setOffset({ x: e.clientX - position.x, y: e.clientY - position.y });
+  };
+  const handleMouseMove = (e: MouseEvent) => {
+    if (dragging) {
+      setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+    }
+  };
+  const handleMouseUp = () => setDragging(false);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging, offset]);
+
+  if (!currentCall) return null;
   const contact = contacts.find((c) => c._id === currentCall.receiverId);
 
   return (
@@ -33,7 +57,18 @@ const Outgoing = () => {
           </div>
         </div>
       </div>
-
+      {/* local video */}
+      {currentCall.type === 'video' && (
+        <video
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          muted
+          className="fixed bottom-0 right-0 w-50 object-cover"
+          onMouseDown={handleMouseDown}
+          style={{ top: position.y, left: position.x, zIndex: 1000, cursor: 'move' }}
+        />
+      )}
       {/* Call Controls */}
       <div className="p-8">
         <div className="flex items-center justify-center gap-6">
@@ -58,13 +93,7 @@ const Outgoing = () => {
               {isVideoOff ? <FiVideoOff className="h-6 w-6" /> : <FiVideo className="h-6 w-6" />}
             </Button>
           )}
-          <video
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="fixed bottom-0 right-0 w-100"
-          />
+
           {/* End Call Button */}
           <Button
             size="lg"

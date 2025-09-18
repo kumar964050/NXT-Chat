@@ -68,6 +68,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       const localStream = await navigator.mediaDevices.getUserMedia(constraints);
 
       localStreamRef.current = localStream;
+
       setTimeout(() => {
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
@@ -76,8 +77,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
       return localStream;
     } catch (err) {
-      console.error('Failed to get local stream', err);
-      throw err;
+      console.error('❌ Failed to get local stream', err);
     }
   };
 
@@ -201,10 +201,12 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
 
     setCurrentCall(null);
-    setIsInCall(false);
-    setIsIncoming(false);
     setIsOutgoing(false);
+    setIsIncoming(false);
+    setIsInCall(false);
     setCallDuration(0);
+    setIsMuted(false);
+    setIsVideoOff(false);
   };
 
   const toggleMute = () => {
@@ -290,6 +292,34 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     }
     const i = setInterval(() => setCallDuration((s) => s + 1), 1000);
     return () => clearInterval(i);
+  }, [currentCall]);
+
+  // get media stream
+  useEffect(() => {
+    if (!currentCall) return;
+
+    let localStream: MediaStream;
+
+    navigator.mediaDevices
+      .getUserMedia({ video: currentCall.type === 'video', audio: true })
+      .then((stream) => {
+        localStream = stream;
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          console.log('🎥 Attached stream to localVideo');
+        }
+      });
+
+    // 🔴 cleanup when call ends or component unmounts
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
+        console.log('🛑 Stopped local media tracks');
+      }
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = null;
+      }
+    };
   }, [currentCall]);
 
   const value: CallContextType = {

@@ -111,12 +111,12 @@ const Active = () => {
       {currentCall.type === 'video' && (
         <div>
           <video
-            onMouseDown={handleMouseDown}
             ref={localVideoRef}
             autoPlay
             playsInline
             muted
-            className="fixed bg-black border-2 object-cover border-border/20 rounded-lg z-50  bottom-0 right-0 w-30 md:w-80 md:h-50"
+            className="fixed bg-black border-2 object-cover border-gray-300 rounded-lg z-50  bottom-0 right-0 w-30 md:w-80 md:h-50"
+            onMouseDown={handleMouseDown}
             style={{ top: position.y, left: position.x, zIndex: 1000, cursor: 'move' }}
           />
         </div>
