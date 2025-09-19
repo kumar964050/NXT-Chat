@@ -14,7 +14,7 @@ const ProtectedLayout: FC<ProtectedLayoutProps> = ({ children }) => {
 
   // If not authenticated, redirect to login and remember where user wanted to go
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   // Authenticated → render children

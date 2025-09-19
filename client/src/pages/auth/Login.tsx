@@ -119,13 +119,13 @@ const Login = () => {
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <Link to="/auth/forgot-password" className="text-sm text-primary hover:underline">
+              <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                 Forgot password?
               </Link>
             </div>
             <Button
               type="submit"
-              className="w-full bg-gradient-primary border-0"
+              className="w-full bg-gradient-primary border-0 cursor-pointer"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
@@ -134,7 +134,7 @@ const Login = () => {
           <div className="text-center">
             <span className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/auth/register" className="text-primary hover:underline font-medium">
+              <Link to="/register" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>
             </span>

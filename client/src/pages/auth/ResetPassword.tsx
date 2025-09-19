@@ -57,7 +57,7 @@ const ResetPassword = () => {
           description: data.message || 'You can now sign in with your new password.',
         });
         setTimeout(() => {
-          navigate('/auth/login');
+          navigate('/login');
         }, 1300);
       } else {
         toast({
@@ -152,7 +152,7 @@ const ResetPassword = () => {
           </form>
           <div className="text-center">
             <Link
-              to="/auth/login"
+              to="/login"
               className="inline-flex items-center text-primary hover:underline text-sm"
             >
               <FiArrowLeft className="mr-2 h-4 w-4" />

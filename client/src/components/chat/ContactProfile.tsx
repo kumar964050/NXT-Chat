@@ -44,7 +44,7 @@ const ContactProfile = ({ contactId, onClose }: ContactProfileProps) => {
   const documentCount = 90;
 
   return (
-    <div className="fixed z-50 bg-white/80 top-0 bottom-0 left-0 right-0 flex justify-center items-center">
+    <div className="fixed z-50 bg-black/80 top-0 bottom-0 left-0 right-0 flex justify-center items-center">
       <div className="w-full max-w-2xl max-h-100 overflow-y-auto bg-background border-l border-border rounded-2xl py-10">
         <div className="p-4 space-y-6">
           {/* Header */}

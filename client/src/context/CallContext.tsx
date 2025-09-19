@@ -188,6 +188,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
 
   // end call
   const endCall = () => {
+    if (currentCall) {
+      setCurrentCall({ ...currentCall, status: 'ended' });
+    }
     peerRef.current?.close();
     peerRef.current = null;
 
@@ -294,29 +297,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   // get media stream
   useEffect(() => {
     if (!currentCall) return;
-
-    let localStream: MediaStream;
-
-    navigator.mediaDevices
-      .getUserMedia({ video: currentCall.type === 'video', audio: true })
-      .then((stream) => {
-        localStream = stream;
-        localStreamRef.current = localStream;
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = stream;
-          console.log('🎥 Attached stream to localVideo');
-        }
-      });
-
-    // 🔴 cleanup when call ends or component unmounts
-    return () => {
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
-      }
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = null;
-      }
-    };
   }, [currentCall]);
 
   const value: CallContextType = {

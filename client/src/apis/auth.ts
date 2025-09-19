@@ -11,7 +11,7 @@ const login = (data: LoginFormDataProps) =>
 
 // POST : Register
 const register = (data: RegisterFormDataProps) =>
-  apiFetch<UserResponse>('/auth/register', {
+  apiFetch<BaseResponse>('/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
   });

@@ -13,7 +13,7 @@ import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
 // types
-import { UserResponse } from '@/types/responses';
+import { BaseResponse } from '@/types/responses';
 import { RegisterFormDataProps } from '@/types/auth';
 
 // apis
@@ -30,7 +30,6 @@ const Register = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { handleAddUser } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,12 +40,9 @@ const Register = () => {
     // TODO: validation here
     try {
       setIsLoading(true);
-      const data: UserResponse = await AuthenticationApi.register(formData);
+      const data: BaseResponse = await AuthenticationApi.register(formData);
 
       if (data.status === 'success') {
-        Cookies.set('token', data.token, { expires: 7 });
-        handleAddUser(data.data.user);
-
         toast({
           title: 'Account created!',
           description: 'Welcome to Nxt-Chat! You can now start chatting.',
@@ -54,7 +50,7 @@ const Register = () => {
 
         // move app after 1.3 seconds
         setTimeout(() => {
-          navigate('/app');
+          navigate('/login');
         }, 1300);
       } else {
         toast({
@@ -156,7 +152,7 @@ const Register = () => {
           <div className="text-center">
             <span className="text-sm text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/auth/login" className="text-primary hover:underline font-medium">
+              <Link to="/login" className="text-primary hover:underline font-medium">
                 Sign in
               </Link>
             </span>
