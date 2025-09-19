@@ -12,11 +12,15 @@ export interface IUser extends Document {
   is_active: boolean;
   is_verified: boolean;
   last_seen: Date;
+  createdAt: Date;
+  updatedAt: Date;
   image: { url: string | null | undefined; id: string | null | undefined };
   forgotPassword: {
     expiry: Date | null | undefined;
     token: string | null | undefined;
   };
+  muted: mongoose.Types.ObjectId[];
+  blocked: mongoose.Types.ObjectId[];
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateAuthToken: () => string;
 }
@@ -51,6 +55,8 @@ const UserSchema = new Schema<IUser>(
       token: { type: String, default: null, select: false },
     },
     last_seen: { type: Date, default: Date.now },
+    muted: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    blocked: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

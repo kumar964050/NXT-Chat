@@ -19,8 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import useAuth from '@/hooks/useAuth';
 
 const Login = () => {
-  const [email, setEmail] = useState('john@example.com');
-  const [password, setPassword] = useState('Test@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -81,14 +81,15 @@ const Login = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4 ">
+            {/* email or username */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email or Phone</Label>
+              <Label htmlFor="email">Email or Username</Label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="Enter your email"
+                  type="text"
+                  placeholder="Enter your email/username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
@@ -96,6 +97,7 @@ const Login = () => {
                 />
               </div>
             </div>
+            {/* password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">

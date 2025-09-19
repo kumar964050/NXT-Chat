@@ -1,6 +1,7 @@
 import { useState } from 'react';
+//
 import { Navigate } from 'react-router-dom';
-
+import Cookies from 'js-cookie';
 // components
 import {
   DropdownMenu,
@@ -18,6 +19,11 @@ import { FiMoreVertical, FiUser, FiTrash2, FiFlag, FiVolume2, FiVolumeX } from '
 // hooks
 import useContacts from '@/hooks/useContacts';
 import { useToast } from '@/hooks/use-toast';
+// types
+import { BaseResponse } from '@/types/responses';
+// apis
+import UserAPis from '@/apis/users';
+import useAuth from '@/hooks/useAuth';
 
 interface ChatHeaderMenuProps {
   contactId: string;
@@ -25,25 +31,43 @@ interface ChatHeaderMenuProps {
 
 const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
   const [showProfile, setShowProfile] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const { contacts } = useContacts();
+  const { userDetails, handleMuteUser } = useAuth();
   const { toast } = useToast();
 
   const contact = contacts.find((c) => c._id === contactId);
   if (!contact) return <Navigate to={'/not-found'} replace={true} />;
+  const isMuted = (userDetails.muted ?? []).includes(contact._id);
 
   const handleViewProfile = () => {
     setShowProfile(true);
   };
 
-  const handleMuteToggle = () => {
-    setIsMuted(!isMuted);
-    // TODO: Implement mute functionality
-    //  will push contact id in userDetails muted[] arr
-    toast({
-      title: 'Mute  functionality',
-      description: 'Mute  functionality not yet Implemented',
-    });
+  // mute handler
+  const handleMuteToggle = async () => {
+    try {
+      const token = Cookies.get('token');
+      const data = await UserAPis.changeContactMuteStatus(token, contact._id, isMuted);
+      if (data.status === 'success') {
+        handleMuteUser(contact._id);
+        toast({
+          title: 'Mute/Unmute  Request',
+          description: data.message as string,
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Failed Mute  Request',
+          description: data.message as string,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed Mute  Request',
+        description: error.message as string,
+      });
+    }
   };
 
   const handleClearChat = () => {

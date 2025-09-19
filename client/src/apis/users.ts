@@ -17,14 +17,14 @@ const me = (token: string) =>
   });
 
 // PUT : Update user
-const updateUserDetails = (token, id: string, data: UpdateUserFormDataProps) =>
+const updateUserDetails = (token: string, id: string, data: UpdateUserFormDataProps) =>
   apiFetch<UserResponse>(`/users/${id}`, {
     method: 'PUT',
     token,
     body: JSON.stringify(data),
   });
 
-const changePassword = (token, id: string, data: ChangePasswordProps) =>
+const changePassword = (token: string, id: string, data: ChangePasswordProps) =>
   apiFetch<BaseResponse>(`/users/${id}/change-password`, {
     method: 'PATCH',
     token,
@@ -32,17 +32,24 @@ const changePassword = (token, id: string, data: ChangePasswordProps) =>
   });
 
 // DELETE : account delete(soft delete)
-const deleteAccount = (token, id: string) =>
+const deleteAccount = (token: string, id: string) =>
   apiFetch<BaseResponse>(`/users/${id}`, {
     method: 'DELETE',
     token,
   });
 
 // DELETE : Remove user profile image
-const removeProfileImage = (token, id: string) =>
+const removeProfileImage = (token: string, id: string) =>
   apiFetch<BaseResponse>(`/users/${id}/profile-image`, {
     method: 'DELETE',
     token,
+  });
+// DELETE : Remove user profile image
+const changeContactMuteStatus = (token: string, userId: string, isMute: boolean) =>
+  apiFetch<BaseResponse>(`/users/toggle-mute`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify({ userId, isMute }),
   });
 
 export default {
@@ -52,4 +59,5 @@ export default {
   deleteAccount,
   removeProfileImage,
   changePassword,
+  changeContactMuteStatus,
 };

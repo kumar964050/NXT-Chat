@@ -22,7 +22,6 @@ const ChatSidebar = () => {
   const { userDetails } = useAuth();
   const { activeUsers } = useSocket();
   const { contacts } = useContacts();
-  //   const currentUser = useSelector((state: RootState) => state.auth.user);
 
   const filteredContacts = contacts.filter(
     (contact) =>

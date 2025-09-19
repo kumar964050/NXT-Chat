@@ -9,6 +9,8 @@ export interface IMessage extends Document {
   attachment?: { id: string; url: string; name: string; size: number };
   location?: { latitude: number; longitude: number; address?: string };
   status: "sending" | "sent" | "delivered" | "read";
+  is_deleted: boolean;
+  deletedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +42,8 @@ const MessageSchema: Schema<IMessage> = new Schema(
       enum: ["sending", "sent", "delivered", "read"],
       default: "sending",
     },
+    is_deleted: { type: Boolean, default: false },
+    deletedAt: { type: Date },
   },
   {
     timestamps: true,

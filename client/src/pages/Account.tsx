@@ -180,7 +180,7 @@ const Account = () => {
     }
   };
 
-  const handleBackNavigation = () => () => navigate(-1);
+  const handleBackNavigation = () => navigate(-1);
 
   return (
     <div className="flex-1 bg-gradient-bg overflow-y-auto h-screen">

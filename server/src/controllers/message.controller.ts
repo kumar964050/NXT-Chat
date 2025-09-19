@@ -55,6 +55,7 @@ const getMsg = async (req: AuthRequest, res: Response, next: NextFunction) => {
       { from: req.user._id, to: chatId },
       { to: req.user._id, from: chatId },
     ],
+    is_deleted: false,
   };
 
   const messages = await Messages.find(query).sort({ createdAt: 1 });

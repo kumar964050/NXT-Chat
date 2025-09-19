@@ -5,11 +5,12 @@ import { useParams } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import { v4 as uuidV4 } from 'uuid';
 // components
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import MediaUpload from './MediaUpload';
 import EmojiPicker from './EmojiPicker';
 import ChatHeader from './ChatHeader';
+import { Loading } from '../ui/loading';
 
 // icons
 import { FiSend } from 'react-icons/fi';
@@ -36,7 +37,7 @@ const ChatWindow = () => {
   const { userDetails: currentUser } = useAuth();
   const { chatId: activeChat } = useParams();
   const { toast } = useToast();
-  const { handleUpdateLastMsg } = useContacts();
+  const { handleUpdateLastMsg, isLoading } = useContacts();
   const { socket } = useSocket();
   const token = Cookies.get('token');
 
@@ -269,6 +270,8 @@ const ChatWindow = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  if (isLoading) return <Loading />;
 
   const groupedMessages = groupMessagesByDate(messages);
 

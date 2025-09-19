@@ -14,6 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   handleAddUser: (user: User) => void;
   handleRemoveUser: () => void;
+  handleMuteUser: (id: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,9 +26,8 @@ interface AuthProviderProps {
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [userDetails, setUserDetails] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleAddUser = (user: User) => {
     setIsAuthenticated(true);
@@ -39,16 +39,24 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove('token');
   };
 
+  const handleMuteUser = (muteId: string) => {
+    const muted = userDetails?.muted ?? [];
+    const index = muted.findIndex((id) => id === muteId);
+    if (index !== -1) muted.splice(index, 1);
+    else muted.push(muteId);
+    setUserDetails({ ...userDetails, muted });
+  };
+
   // get token from cookies & do api call to get user from server
   useEffect(() => {
     (async () => {
       try {
         const token = Cookies.get('token');
         if (!token) {
-          setLoading(false);
+          setIsLoading(false);
           return;
         }
-        setLoading(true);
+        setIsLoading(true);
         const data = await UserApis.me(token);
         if (data.status === 'success') {
           handleAddUser(data.data.user);
@@ -56,7 +64,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         console.log(error.message);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     })();
   }, [navigate]);
@@ -66,11 +74,10 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     handleAddUser,
     handleRemoveUser,
+    handleMuteUser,
     isLoading,
-    setLoading,
   };
 
-  console.log(location.pathname);
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
 };
 

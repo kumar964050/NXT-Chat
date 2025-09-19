@@ -119,12 +119,18 @@ const deleteAccount = async (
   }
 
   req.user.is_active = false;
+  req.user.is_verified = false;
   await req.user.save();
 
   // sending confirmation email to user
   EmailService.accountDeleted(
     req.user.email,
     req.user?.name ?? req.user.username
+  );
+
+  await Message.updateMany(
+    { $or: [{ from: req.user._id }, { to: req.user._id }] },
+    { $set: { is_deleted: true, deletedAt: new Date() } }
   );
 
   res.json({
@@ -268,6 +274,32 @@ const uploadProfileImage = async (
   });
 };
 
+const toggleMuteContact = async (
+  req: AuthFileRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
+  }
+
+  const findUser = await User.findById(req.body.userId);
+  if (!findUser) {
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
+  }
+  const muted = req.user.muted ?? [];
+  console.log(muted);
+  if (req.body.isMute) {
+    const index = muted.findIndex((id) => id === findUser._id);
+    if (index) muted.splice(index, 1);
+  } else {
+    muted.push(findUser._id);
+  }
+  req.user.muted = muted;
+  await req.user.save();
+  res.json({ status: "success", message: SUCCESS_MESSAGES.REQUEST_SUCCESS });
+};
+
 export default {
   getAllUsers,
   getUserById,
@@ -277,4 +309,5 @@ export default {
   deleteAccount,
   removeProfileImage,
   ChangePassword,
+  toggleMuteContact,
 };

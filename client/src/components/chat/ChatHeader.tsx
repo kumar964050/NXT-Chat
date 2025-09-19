@@ -26,10 +26,7 @@ const ChatHeader = () => {
     return `Last seen ${formatDistanceToNow(new Date(lastSeen), { addSuffix: true })}`;
   };
   const handleStartCall = (id, type) => startCall(id, type);
-  const handleBackNavigation = () => () => navigate(-1);
-
-  // loading
-  if (contacts.isLoading) return <Loading />;
+  const handleBackNavigation = () => navigate(-1);
 
   // find customer in contacts list
   const contact = contacts.contacts.find((c) => c._id === activeChat);

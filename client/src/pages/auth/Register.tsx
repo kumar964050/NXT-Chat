@@ -45,7 +45,7 @@ const Register = () => {
       if (data.status === 'success') {
         toast({
           title: 'Account created!',
-          description: 'Welcome to Nxt-Chat! You can now start chatting.',
+          description: data.message || 'Welcome to Nxt-Chat! You can now start chatting.',
         });
 
         // move app after 1.3 seconds
@@ -82,6 +82,23 @@ const Register = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
+              <div className="relative">
+                <FiUser className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
             {/* username */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>

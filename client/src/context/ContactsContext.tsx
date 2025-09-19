@@ -34,26 +34,6 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
   const { chatId } = useParams();
   const { toast } = useToast();
 
-  //API Call : get contacts list from server
-  useEffect(() => {
-    if (!userDetails) return;
-
-    (async () => {
-      try {
-        setLoading(true);
-        const token = Cookies.get('token');
-        const data = await UserApis.getUsers(token);
-        if (data.status === 'success') {
-          setContacts(data.data.users);
-        }
-      } catch (error) {
-        console.log(error.message as string);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [userDetails]);
-
   // update last seen in contacts
   const handleUserWentToOffline = (userId: string) => {
     setContacts((prev: User[]): User[] => {
@@ -72,20 +52,25 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
   // update last msg in contacts
   const handleUpdateLastMsg = (msg: Message) => {
     setContacts((prev) =>
-      prev.map((contact) => {
-        if (contact._id === msg.from || contact._id === msg.to) {
-          return {
-            ...contact,
-            lastMessage: msg,
-          };
-        }
-        return contact;
-      })
+      prev.map((contact) =>
+        contact._id === msg.from || contact._id === msg.to
+          ? { ...contact, lastMessage: msg }
+          : contact
+      )
     );
-    if (chatId !== msg.from && msg.from !== userDetails?._id) {
+
+    // 01 not from current chat id
+    // 02 not from current logged in user
+    // 03 sender should NOT be in user's muted arr list
+    if (!userDetails) return;
+    if (
+      (chatId ? msg.from !== chatId : true) &&
+      msg.from !== userDetails._id &&
+      !(userDetails.muted ?? []).includes(msg.from)
+    ) {
       toast({
         title: '📩 Message received',
-        description: 'you got a new message.',
+        description: 'You got a new message.',
       });
     }
   };
@@ -99,6 +84,27 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
       return bTime - aTime; // newest first
     });
   }, [contacts]);
+
+  //API Call : get contacts list from server
+  // API Call : get contacts list from server
+  useEffect(() => {
+    if (!userDetails) return; // ⬅️ skip until auth is ready
+
+    (async () => {
+      try {
+        const token = Cookies.get('token');
+        setLoading(true);
+        const data = await UserApis.getUsers(token);
+        if (data.status === 'success') {
+          setContacts(data.data.users);
+        }
+      } catch (error: any) {
+        console.log(error.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userDetails]);
 
   const values = {
     contacts: sortedContacts,

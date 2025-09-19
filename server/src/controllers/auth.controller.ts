@@ -2,7 +2,7 @@ import crypto from "crypto";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import CustomError from "../utils/CustomError";
-import User from "../models/user.model";
+import User, { IUser } from "../models/user.model";
 import EmailService from "../services/EmailService";
 
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
@@ -24,35 +24,52 @@ const getVerifyLinkWithToken = (req: Request, id: string) => {
 
 // SignUp
 const register = async (req: Request, res: Response, next: NextFunction) => {
-  const findUser = await User.findOne({
+  const activeUser = await User.findOne({
     $or: [{ username: req.body.username }, { email: req.body.email }],
+    is_active: true,
   });
 
-  if (findUser) {
+  if (activeUser) {
     return next(new CustomError(ERROR_MESSAGES.USER_ALREADY_EXISTS, 400));
   }
 
-  const newUser = await User.create({
-    ...req.body,
-    name: req.body.email.split("@")[0],
+  let user = await User.findOne({
+    $or: [{ username: req.body.username }, { email: req.body.email }],
+    is_active: false,
   });
 
+  // Reactivate old user
+  if (user) {
+    user.is_active = true;
+    user.username = req.body.username;
+    user.email = req.body.email;
+    user.password = req.body.password;
+    user.name = req.body.name ?? req.body.email.split("@")[0];
+    await user.save();
+  } else {
+    // Create new user
+    user = await User.create({
+      ...req.body,
+      name: req.body.name ?? req.body.email.split("@")[0],
+    });
+  }
+
   // sending welcome mail to user
-  EmailService.sendWelcomeEmail(
-    newUser.email,
-    newUser?.name ?? newUser.username
-  );
+  EmailService.sendWelcomeEmail(user.email, user?.name ?? user.username);
 
   // sending email verification mail
   EmailService.emailVerification(
-    newUser.email,
-    newUser.name ?? newUser.username,
-    getVerifyLinkWithToken(req, newUser._id.toString())
+    user.email,
+    user.name ?? user.username,
+    getVerifyLinkWithToken(req, user._id.toString())
   );
 
   res.status(201).json({
     status: "success",
-    message: SUCCESS_MESSAGES.USER_CREATED,
+    message:
+      SUCCESS_MESSAGES.USER_CREATED +
+      " " +
+      SUCCESS_MESSAGES.EMAIL_VERIFICATION_SENT,
   });
 };
 
@@ -60,6 +77,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
 const login = async (req: Request, res: Response, next: NextFunction) => {
   const findUser = await User.findOne({
     $or: [{ username: req.body.identity }, { email: req.body.identity }],
+    is_active: true,
   }).select("+password");
 
   if (!findUser) {
