@@ -1,12 +1,14 @@
 import { Response, NextFunction } from "express";
-import CustomError from "../utils/CustomError";
+import mongoose from "mongoose";
+// models
 import User, { IUser } from "../models/user.model";
 import Message from "../models/message.model";
-
+//
+import { uploadSingleFile } from "../config/cloudinary";
+import CustomError from "../utils/CustomError";
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
 import { AuthRequest, AuthFileRequest } from "../types";
-import { uploadSingleFile } from "../config/cloudinary";
-import mongoose from "mongoose";
+import EmailService from "../services/EmailService";
 
 //  get list of users
 const getAllUsers = async (
@@ -64,6 +66,8 @@ const getAllUsers = async (
     data: { users: result, results: result.length },
   });
 };
+
+// get user profile by id
 const getUserById = async (
   req: AuthRequest,
   res: Response,
@@ -86,6 +90,8 @@ const getUserById = async (
     data: { user },
   });
 };
+
+// get my(logged in user) profile
 const getMyProfile = async (
   req: AuthRequest,
   res: Response,
@@ -102,6 +108,95 @@ const getMyProfile = async (
     data: { user },
   });
 };
+
+// delete user account(soft delete)
+const deleteAccount = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
+  }
+
+  req.user.is_active = false;
+  await req.user.save();
+
+  // sending confirmation email to user
+  EmailService.accountDeleted(
+    req.user.email,
+    req.user?.name ?? req.user.username
+  );
+
+  res.json({
+    status: "success",
+    message: SUCCESS_MESSAGES.ACCOUNT_DELETED,
+  });
+};
+
+// TODO: remove user profile image
+const removeProfileImage = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
+  }
+
+  // will imp login here
+  // todo
+
+  res.json({
+    status: "success",
+    message: SUCCESS_MESSAGES.PROFILE_IMAGE_REMOVED,
+  });
+};
+
+// Change User Password
+const ChangePassword = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
+  }
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return next(new CustomError(ERROR_MESSAGES.PASSWORD_REQUIRED, 400));
+  }
+
+  if (newPassword.length < 8) {
+    return next(new CustomError(ERROR_MESSAGES.PASSWORD_MIN_LENGTH, 400));
+  }
+
+  // Checking User
+  const user = await User.findById(req.user._id).select("+password");
+  if (!user) {
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
+  }
+
+  // Checking  Password
+  const isPasswordMatch = await user.comparePassword(currentPassword);
+  if (!isPasswordMatch) {
+    return next(new CustomError(ERROR_MESSAGES.INVALID_CREDENTIALS, 400));
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  // inform to user
+  await EmailService.passwordUpdated(user.email, user?.name ?? user.username);
+
+  res.json({
+    status: "success",
+    message: SUCCESS_MESSAGES.PASSWORD_CHANGED,
+  });
+};
+
+// Update User Details
 const updateUserDetails = async (
   req: AuthRequest,
   res: Response,
@@ -133,12 +228,20 @@ const updateUserDetails = async (
   req.user.email = req.body.email;
   await req.user.save();
 
+  // inform to user
+  await EmailService.userDetailsUpdated(
+    req.user.email,
+    req.user?.name ?? req.user.username
+  );
+
   res.json({
     status: "success",
     message: SUCCESS_MESSAGES.USER_PROFILE_UPDATED,
     data: { user: req.user },
   });
 };
+
+// Update User Profile Image
 const uploadProfileImage = async (
   req: AuthFileRequest,
   res: Response,
@@ -163,76 +266,7 @@ const uploadProfileImage = async (
     data: { image: data },
   });
 };
-const deleteAccount = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.user) {
-    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
-  }
 
-  req.user.is_active = false;
-  await req.user.save();
-
-  res.json({
-    status: "success",
-    message: SUCCESS_MESSAGES.ACCOUNT_DELETED,
-  });
-};
-const removeProfileImage = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.user) {
-    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
-  }
-
-  // will imp login here
-  // todo
-
-  res.json({
-    status: "success",
-    message: SUCCESS_MESSAGES.PROFILE_IMAGE_REMOVED,
-  });
-};
-const ChangePassword = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.user) {
-    return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
-  }
-  const { currentPassword, newPassword } = req.body;
-
-  if (!currentPassword || !newPassword) {
-    return next(new CustomError(ERROR_MESSAGES.PASSWORD_REQUIRED, 400));
-  }
-
-  if (newPassword.length < 8) {
-    return next(new CustomError(ERROR_MESSAGES.PASSWORD_MIN_LENGTH, 400));
-  }
-
-  const user = await User.findById(req.user._id).select("+password");
-  if (!user) {
-    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
-  }
-
-  const isPasswordMatch = await user.comparePassword(currentPassword);
-  if (!isPasswordMatch) {
-    return next(new CustomError(ERROR_MESSAGES.PASSWORD_INCORRECT, 400));
-  }
-
-  user.password = newPassword;
-  await user.save();
-
-  res.json({
-    status: "success",
-    message: SUCCESS_MESSAGES.PASSWORD_CHANGED,
-  });
-};
 export default {
   getAllUsers,
   getUserById,

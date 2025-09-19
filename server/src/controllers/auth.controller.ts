@@ -6,8 +6,6 @@ import EmailService from "../services/EmailService";
 
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
 
-const emailService = new EmailService();
-
 // SignUp
 const register = async (req: Request, res: Response, next: NextFunction) => {
   const findUser = await User.findOne({
@@ -24,8 +22,11 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     name: req.body.email.split("@")[0],
   });
 
-  // sending welcome mail to shop owner
-  await emailService.sendWelcomeEmail(newUser.email, req.body.ownerName);
+  // sending welcome mail to user
+  await EmailService.sendWelcomeEmail(
+    newUser.email,
+    newUser?.name ?? newUser.username
+  );
 
   // remove password from the response
   const { password, forgotPassword, ...userData } = newUser.toObject();
@@ -56,7 +57,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
   // user not verified email send verify email
   if (!findUser.is_verified) {
-    // await emailService.sendWelcomeEmail(findUser.email, req.body.ownerName);
+    // await EmailService.sendWelcomeEmail(findUser.email, req.body.ownerName);
   }
 
   // remove password from the response
@@ -93,8 +94,14 @@ const forgotPassword = async (
 
     const url = `${process.env.CLIENT_URL}/auth/reset-password`;
     const link = url + `?token=${token}`;
-    await emailService.resetPasswordEmail(user.email, user.name, link);
-    console.log(link);
+
+    // sending link to user email id
+    await EmailService.resetPasswordLink(
+      user.email,
+      user?.name ?? user.username,
+      link
+    );
+
     res.json({
       status: "success",
       message: SUCCESS_MESSAGES.FORGOT_PASSWORD_EMAIL_SENT,
@@ -124,6 +131,11 @@ const resetPassword = async (
   user.forgotPassword = { token: null, expiry: null };
 
   await user.save();
+
+  await EmailService.resetPasswordSuccess(
+    user.email,
+    user?.name ?? user.username
+  );
 
   res.json({
     status: "success",

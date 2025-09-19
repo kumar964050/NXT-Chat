@@ -51,22 +51,8 @@ class EmailService {
     await this.sendEmail({ to, subject, html });
   }
 
-  // Reset password link
-  async resetPasswordEmail(
-    to: string,
-    name: string,
-    link: string
-  ): Promise<void> {
-    const subject = EMAIL_SUBJECTS.PASSWORD_RESET;
-    const html = EMAIL_BODIES.PASSWORD_RESET(name, link);
-    await this.sendEmail({ to, subject, html });
-  }
-  async resetPasswordSuccessEmail(to: string, name: string): Promise<void> {
-    const subject = EMAIL_SUBJECTS.PASSWORD_RESET_SUCCESS;
-    const html = EMAIL_BODIES.PASSWORD_RESET_SUCCESS(name);
-    await this.sendEmail({ to, subject, html });
-  }
-  async verificationEmail(
+  // 02 email verification
+  async emailVerification(
     to: string,
     name: string,
     link: string
@@ -76,12 +62,44 @@ class EmailService {
     await this.sendEmail({ to, subject, html });
   }
 
-  // 5. Account deletion confirmation
-  async accountDeletedEmail(to: string, name: string): Promise<void> {
+  //03 Password Reset link
+  async resetPasswordLink(
+    to: string,
+    name: string,
+    link: string
+  ): Promise<void> {
+    const subject = EMAIL_SUBJECTS.PASSWORD_RESET;
+    const html = EMAIL_BODIES.PASSWORD_RESET(name, link);
+    await this.sendEmail({ to, subject, html });
+  }
+
+  // 04 Password Reset Success
+  async resetPasswordSuccess(to: string, name: string): Promise<void> {
+    const subject = EMAIL_SUBJECTS.PASSWORD_RESET_SUCCESS;
+    const html = EMAIL_BODIES.PASSWORD_RESET_SUCCESS(name);
+    await this.sendEmail({ to, subject, html });
+  }
+
+  // 05 Password Updated
+  async passwordUpdated(to: string, name: string): Promise<void> {
+    const subject = EMAIL_SUBJECTS.PASSWORD_UPDATED;
+    const html = EMAIL_BODIES.PASSWORD_UPDATED(name);
+    await this.sendEmail({ to, subject, html });
+  }
+
+  // 06 UserDetails Updated
+  async userDetailsUpdated(to: string, name: string): Promise<void> {
+    const subject = EMAIL_SUBJECTS.USER_DETAILS_UPDATED;
+    const html = EMAIL_BODIES.USER_DETAILS_UPDATED(name);
+    await this.sendEmail({ to, subject, html });
+  }
+
+  // 07 Account deletion confirmation
+  async accountDeleted(to: string, name: string): Promise<void> {
     const subject = EMAIL_SUBJECTS.ACCOUNT_DELETED;
     const html = EMAIL_BODIES.ACCOUNT_DELETED(name);
     await this.sendEmail({ to, subject, html });
   }
 }
 
-export default EmailService;
+export default new EmailService();
