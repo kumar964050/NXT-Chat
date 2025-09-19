@@ -15,6 +15,7 @@ import { User } from '@/types/user';
 import { Message } from '@/types/message';
 
 interface ContactsContextType {
+  isLoading: boolean;
   contacts: User[];
   handleUserWentToOffline: (userId: string) => void;
   handleUpdateLastMsg: (msg: Message) => void;
@@ -28,7 +29,7 @@ interface ContactsProviderProps {
 
 export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
   const [contacts, setContacts] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   const { userDetails } = useAuth();
   const { chatId } = useParams();
   const { toast } = useToast();
@@ -101,7 +102,7 @@ export const ContactsProvider: FC<ContactsProviderProps> = ({ children }) => {
 
   const values = {
     contacts: sortedContacts,
-    loading,
+    isLoading,
     handleUserWentToOffline,
     handleUpdateLastMsg,
   };

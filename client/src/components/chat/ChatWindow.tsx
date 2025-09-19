@@ -40,27 +40,6 @@ const ChatWindow = () => {
   const { socket } = useSocket();
   const token = Cookies.get('token');
 
-  // Getting msgs from server first time
-  useEffect(() => {
-    if (!activeChat || !currentUser) return;
-    (async () => {
-      const token = Cookies.get('token');
-      const data: MessagesResponse = await msgAPis.getMsgs(token, activeChat);
-      if (data.status === 'success') {
-        setMessages(data.data.messages);
-      }
-    })();
-  }, [activeChat, currentUser]);
-
-  // scrolling to bottom after getting msgs from server
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   // send msg api & socket
   const handleSendMsg = async (msg: Message) => {
     socket.emit('send-msg', msg);
@@ -252,7 +231,9 @@ const ChatWindow = () => {
     }
   };
 
-  const groupedMessages = groupMessagesByDate(messages);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   // get msg from socket
   useEffect(() => {
@@ -271,6 +252,25 @@ const ChatWindow = () => {
     if (!socket || !activeChat || !currentUser) return;
     socket.emit('mark-as-read-msgs', { from: activeChat, to: currentUser._id });
   }, [socket, activeChat, currentUser]);
+
+  // Getting msgs from server first time
+  useEffect(() => {
+    if (!activeChat || !currentUser) return;
+    (async () => {
+      const token = Cookies.get('token');
+      const data: MessagesResponse = await msgAPis.getMsgs(token, activeChat);
+      if (data.status === 'success') {
+        setMessages(data.data.messages);
+      }
+    })();
+  }, [activeChat, currentUser]);
+
+  // scrolling to bottom after getting msgs from server
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const groupedMessages = groupMessagesByDate(messages);
 
   return (
     <>

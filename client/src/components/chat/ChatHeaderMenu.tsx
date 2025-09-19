@@ -13,18 +13,11 @@ import { Button } from '../ui/button';
 import ContactProfile from './ContactProfile';
 
 // icons
-import {
-  FiMoreVertical,
-  FiUser,
-  FiSearch,
-  FiVolume2,
-  FiVolumeX,
-  FiTrash2,
-  FiFlag,
-} from 'react-icons/fi';
+import { FiMoreVertical, FiUser, FiTrash2, FiFlag, FiVolume2, FiVolumeX } from 'react-icons/fi';
 
 // hooks
 import useContacts from '@/hooks/useContacts';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatHeaderMenuProps {
   contactId: string;
@@ -34,6 +27,7 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
   const [showProfile, setShowProfile] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const { contacts } = useContacts();
+  const { toast } = useToast();
 
   const contact = contacts.find((c) => c._id === contactId);
   if (!contact) return <Navigate to={'/not-found'} replace={true} />;
@@ -42,24 +36,31 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
     setShowProfile(true);
   };
 
-  const handleSearchMessages = () => {
-    // TODO: Implement search functionality
-    console.log('Search messages');
-  };
-
   const handleMuteToggle = () => {
     setIsMuted(!isMuted);
     // TODO: Implement mute functionality
+    //  will push contact id in userDetails muted[] arr
+    toast({
+      title: 'Mute  functionality',
+      description: 'Mute  functionality not yet Implemented',
+    });
   };
 
   const handleClearChat = () => {
     // TODO: Implement clear chat functionality
     // dispatch(clearUnreadCount(contactId));
+    toast({
+      title: 'Clear Chat  functionality',
+      description: 'Clear Chat  functionality not yet Implemented',
+    });
   };
 
   const handleReportContact = () => {
     // TODO: Implement report functionality
-    console.log('Report contact');
+    toast({
+      title: 'Report Contact  functionality',
+      description: 'Report Contact  functionality not yet Implemented',
+    });
   };
 
   if (showProfile) {
@@ -82,12 +83,9 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
           <FiUser className="mr-2 h-4 w-4" />
           View Profile
         </DropdownMenuItem>
-        {/* <DropdownMenuItem onClick={handleSearchMessages}>
-          <FiSearch className="mr-2 h-4 w-4" />
-          Search Messages
-        </DropdownMenuItem> */}
-        {/* <DropdownMenuSeparator /> */}
-        {/* <DropdownMenuItem onClick={handleMuteToggle}>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleMuteToggle}>
           {isMuted ? (
             <>
               <FiVolume2 className="mr-2 h-4 w-4" />
@@ -99,7 +97,7 @@ const ChatHeaderMenu = ({ contactId }: ChatHeaderMenuProps) => {
               Mute
             </>
           )}
-        </DropdownMenuItem> */}
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleClearChat}>
           <FiTrash2 className="mr-2 h-4 w-4" />
           Clear Chat

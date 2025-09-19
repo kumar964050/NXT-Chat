@@ -2,7 +2,7 @@ import { createContext, FC, ReactNode, useEffect, useState } from 'react';
 
 // lib
 import Cookies from 'js-cookie';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 // types
 import { User } from '@/types/user';
 // APIS
@@ -27,6 +27,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleAddUser = (user: User) => {
     setIsAuthenticated(true);
@@ -51,7 +52,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         const data = await UserApis.me(token);
         if (data.status === 'success') {
           handleAddUser(data.data.user);
-          navigate('/app');
         }
       } catch (error) {
         console.log(error.message);
@@ -70,6 +70,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setLoading,
   };
 
+  console.log(location.pathname);
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
 };
 

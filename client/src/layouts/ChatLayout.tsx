@@ -80,7 +80,6 @@ const ChatLayout: FC = () => {
           <ChatSidebar />
         </div>
         <Outlet />
-
         {pathname === '/app' && (
           <div className="hidden md:flex flex-col h-full w-full justify-center text-foreground">
             <div className="">

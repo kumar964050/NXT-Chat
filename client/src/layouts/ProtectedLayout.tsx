@@ -1,16 +1,20 @@
 import { FC, ReactNode } from 'react';
 // lib
 import { Navigate, useLocation } from 'react-router-dom';
-// components
+// hooks
 import useAuth from '@/hooks/useAuth';
+// components
+import { Loading } from '@/components/ui/loading';
 
 interface ProtectedLayoutProps {
   children: ReactNode;
 }
 
 const ProtectedLayout: FC<ProtectedLayoutProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+
+  if (isLoading) return <Loading />;
 
   // If not authenticated, redirect to login and remember where user wanted to go
   if (!isAuthenticated) {

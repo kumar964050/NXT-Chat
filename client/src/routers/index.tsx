@@ -45,7 +45,10 @@ export const router = createBrowserRouter([
           </ProtectedLayout>
         ),
         children: [
-          { path: 'chat/:chatId', element: <ChatWindow /> },
+          {
+            path: 'chat/:chatId',
+            element: <ChatWindow />,
+          },
           { path: 'account', element: <Account /> },
           { path: 'settings', element: <Settings /> },
           { path: 'edit', element: <Settings /> },
