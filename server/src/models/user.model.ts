@@ -47,8 +47,8 @@ const UserSchema = new Schema<IUser>(
       url: { type: String, default: null },
     },
     forgotPassword: {
-      expiry: { type: Date, default: null },
-      token: { type: String, default: null },
+      expiry: { type: Date, default: null, select: false },
+      token: { type: String, default: null, select: false },
     },
     last_seen: { type: Date, default: Date.now },
   },

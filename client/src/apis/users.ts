@@ -24,6 +24,13 @@ const updateUserDetails = (token, id: string, data: UpdateUserFormDataProps) =>
     body: JSON.stringify(data),
   });
 
+const changePassword = (token, id: string, data: ChangePasswordProps) =>
+  apiFetch<BaseResponse>(`/users/${id}/change-password`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify(data),
+  });
+
 // DELETE : account delete(soft delete)
 const deleteAccount = (token, id: string) =>
   apiFetch<BaseResponse>(`/users/${id}`, {
@@ -36,13 +43,6 @@ const removeProfileImage = (token, id: string) =>
   apiFetch<BaseResponse>(`/users/${id}/profile-image`, {
     method: 'DELETE',
     token,
-  });
-
-const changePassword = (token, id: string, data: ChangePasswordProps) =>
-  apiFetch<BaseResponse>(`/users/${id}/change-password`, {
-    method: 'PATCH',
-    token,
-    body: JSON.stringify(data),
   });
 
 export default {

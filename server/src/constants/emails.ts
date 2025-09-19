@@ -5,6 +5,7 @@ export const EMAIL_SUBJECTS = {
   PASSWORD_UPDATED: "Your NXT-Chat Password Was Updated 🔒",
   USER_DETAILS_UPDATED: "Your NXT-Chat Profile Was Updated ✨",
   VERIFY_EMAIL: "Verify Your Email Address 📧",
+  VERIFY_EMAIL_SUCCESS: "Your Email Has Been Verified ✅",
   ACCOUNT_DELETED: "Your NXT-Chat Account Has Been Deleted ❌",
 } as const;
 
@@ -42,11 +43,11 @@ export const EMAIL_BODIES = {
       <p>We’re excited to have you on board. Start connecting and chatting instantly.</p>
     `),
 
-  PASSWORD_RESET: (name: string, link: string) =>
+  PASSWORD_RESET: (name: string, link: string, expiryMinutes = 20) =>
     baseWrapper(`
       <h2 style="color:#7c3bec;">Hello ${name},</h2>
       <p>We received a request to reset your NXT-Chat password.</p>
-      <p>Click the button below to reset it (valid for a limited time): 20 minutes</p>
+      <p>Click the button below to reset it (valid for a limited time): ${expiryMinutes} minutes</p>
       <a href="${link}" target="_blank" 
         style="
           display:inline-block;
@@ -100,6 +101,12 @@ export const EMAIL_BODIES = {
         ">
         Verify Email
       </a>
+    `),
+  VERIFY_EMAIL_SUCCESS: (name: string) =>
+    baseWrapper(`
+      <h2 style="color:#2dc2b3;">Hi ${name},</h2>
+      <p>Your email address has been successfully verified ✅.</p>
+      <p>You can now log in and start connecting on <b>NXT-Chat</b> 🎉.</p>
     `),
 
   ACCOUNT_DELETED: (name: string) =>

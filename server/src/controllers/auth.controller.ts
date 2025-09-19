@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import CustomError from "../utils/CustomError";
 import User from "../models/user.model";
@@ -6,11 +7,25 @@ import EmailService from "../services/EmailService";
 
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from "../constants/messages";
 
+// TODO : change logic to from server url to client URL
+const getVerifyLinkWithToken = (req: Request, id: string) => {
+  const protocol = req.protocol;
+  const host = req.get("host");
+  const token = jwt.sign(
+    { id },
+    process.env.JWT_VERIFY_TOKEN_SECRET as string,
+    {
+      expiresIn: "20m",
+    }
+  );
+  const link = `${protocol}://${host}/api/auth/verify-email?token=${token}`;
+  return link;
+};
+
 // SignUp
 const register = async (req: Request, res: Response, next: NextFunction) => {
   const findUser = await User.findOne({
     $or: [{ username: req.body.username }, { email: req.body.email }],
-    // is_deleted: false,
   });
 
   if (findUser) {
@@ -23,13 +38,20 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
   });
 
   // sending welcome mail to user
-  await EmailService.sendWelcomeEmail(
+  EmailService.sendWelcomeEmail(
     newUser.email,
     newUser?.name ?? newUser.username
   );
 
+  // sending email verification mail
+  EmailService.emailVerification(
+    newUser.email,
+    newUser.name ?? newUser.username,
+    getVerifyLinkWithToken(req, newUser._id.toString())
+  );
+
   // remove password from the response
-  const { password, forgotPassword, ...userData } = newUser.toObject();
+  const { password, ...userData } = newUser.toObject();
   const token = newUser.generateAuthToken();
 
   res.status(201).json({
@@ -57,11 +79,24 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 
   // user not verified email send verify email
   if (!findUser.is_verified) {
-    // await EmailService.sendWelcomeEmail(findUser.email, req.body.ownerName);
+    EmailService.emailVerification(
+      findUser.email,
+      findUser.name ?? findUser.username,
+      getVerifyLinkWithToken(req, findUser._id.toString())
+    );
+
+    return next(
+      new CustomError(
+        ERROR_MESSAGES.EMAIL_NOT_VERIFIED +
+          " " +
+          SUCCESS_MESSAGES.EMAIL_VERIFICATION_SENT,
+        401
+      )
+    );
   }
 
   // remove password from the response
-  const { password, forgotPassword, ...userData } = findUser.toObject();
+  const { password, ...userData } = findUser.toObject();
   const token = findUser.generateAuthToken();
 
   res.json({
@@ -72,6 +107,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
+// forgot password ?
 const forgotPassword = async (
   req: Request,
   res: Response,
@@ -79,8 +115,7 @@ const forgotPassword = async (
 ) => {
   const user = await User.findOne({
     $or: [{ username: req.body.identity }, { email: req.body.identity }],
-    //    is_deleted: false,
-  });
+  }).select("+forgotPassword.expiry,forgotPassword.token");
   if (!user) {
     return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
   }
@@ -96,7 +131,7 @@ const forgotPassword = async (
     const link = url + `?token=${token}`;
 
     // sending link to user email id
-    await EmailService.resetPasswordLink(
+    EmailService.resetPasswordLink(
       user.email,
       user?.name ?? user.username,
       link
@@ -113,6 +148,7 @@ const forgotPassword = async (
   }
 };
 
+// reset Password
 const resetPassword = async (
   req: Request,
   res: Response,
@@ -132,10 +168,7 @@ const resetPassword = async (
 
   await user.save();
 
-  await EmailService.resetPasswordSuccess(
-    user.email,
-    user?.name ?? user.username
-  );
+  EmailService.resetPasswordSuccess(user.email, user?.name ?? user.username);
 
   res.json({
     status: "success",
@@ -143,4 +176,52 @@ const resetPassword = async (
   });
 };
 
-export default { register, login, forgotPassword, resetPassword };
+// verify Email Address
+const verifyEmailAddress = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const token = req.query.token as string;
+  if (!token) {
+    return next(new CustomError(ERROR_MESSAGES.INVALID_VERIFY_TOKEN, 400));
+  }
+
+  //
+  const decoded = jwt.verify(
+    token,
+    process.env.JWT_VERIFY_TOKEN_SECRET as string
+  ) as JwtPayload;
+
+  if (!decoded?.id) {
+    return next(new CustomError(ERROR_MESSAGES.INVALID_VERIFY_TOKEN, 400));
+  }
+
+  // Find user
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    return next(new CustomError(ERROR_MESSAGES.USER_NOT_FOUND, 404));
+  }
+
+  // Mark user active (email verified)
+  user.is_verified = true;
+  await user.save();
+
+  EmailService.emailVerificationSuccess(
+    user.email,
+    user?.name ?? user.username
+  );
+
+  res.json({
+    status: "success",
+    message: SUCCESS_MESSAGES.EMAIL_VERIFIED,
+  });
+};
+
+export default {
+  register,
+  login,
+  forgotPassword,
+  resetPassword,
+  verifyEmailAddress,
+};

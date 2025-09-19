@@ -101,11 +101,10 @@ const getMyProfile = async (
     return next(new CustomError(ERROR_MESSAGES.UNAUTHORIZED, 400));
   }
 
-  const { forgotPassword, ...user } = req.user.toObject();
   res.json({
     status: "success",
     message: SUCCESS_MESSAGES.MY_PROFILE_FETCHED,
-    data: { user },
+    data: { user: req.user },
   });
 };
 
@@ -181,14 +180,16 @@ const ChangePassword = async (
   // Checking  Password
   const isPasswordMatch = await user.comparePassword(currentPassword);
   if (!isPasswordMatch) {
-    return next(new CustomError(ERROR_MESSAGES.INVALID_CREDENTIALS, 400));
+    return next(
+      new CustomError(ERROR_MESSAGES.INCORRECT_CURRENT_PASSWORD, 400)
+    );
   }
 
   user.password = newPassword;
   await user.save();
 
   // inform to user
-  await EmailService.passwordUpdated(user.email, user?.name ?? user.username);
+  EmailService.passwordUpdated(user.email, user?.name ?? user.username);
 
   res.json({
     status: "success",
@@ -229,7 +230,7 @@ const updateUserDetails = async (
   await req.user.save();
 
   // inform to user
-  await EmailService.userDetailsUpdated(
+  EmailService.userDetailsUpdated(
     req.user.email,
     req.user?.name ?? req.user.username
   );

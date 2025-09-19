@@ -11,6 +11,10 @@ export const SUCCESS_MESSAGES = {
   PASSWORD_RESET: "Your password has been reset successfully.",
   PROFILE_UPDATED: "Your profile has been updated successfully.",
   ACCOUNT_DELETED: "Your account has been deleted successfully.",
+  EMAIL_VERIFICATION_SENT:
+    "A verification link has been sent to your email address. Please check your inbox.",
+  EMAIL_VERIFIED:
+    "Your email address has been successfully verified. You can now log in.",
 
   // Users
   USERS_FETCHED: "Users fetched successfully.",
@@ -45,16 +49,18 @@ export const ERROR_MESSAGES = {
   UNAUTHORIZED: "Authentication required. Please log in.",
   TOKEN_EXPIRED: "Your session has expired. Please log in again.",
   INVALID_TOKEN: "Authentication token is invalid. Please log in again.",
+  INVALID_VERIFY_TOKEN:
+    "The verification token is invalid or has expired. Please request a new one.",
   FORBIDDEN: "You do not have permission to perform this action.",
   BAD_REQUEST: "The request could not be processed due to invalid input.",
+  EMAIL_NOT_VERIFIED:
+    "Your email address is not verified. Please verify to continue.",
 
   // Auth / User
   USER_NOT_FOUND: "No account was found with the provided details.",
   INVALID_CREDENTIALS: "The email or password you entered is incorrect.",
   USER_ALREADY_EXISTS: "An account with this email or username already exists.",
   ACCOUNT_NOT_ACTIVE: "Your account is not active. Please contact support.",
-  EMAIL_NOT_VERIFIED:
-    "Your email address is not verified. Please verify to continue.",
   EMAIL_ALREADY_EXISTS: "Email is already in use.",
   USERNAME_ALREADY_EXISTS: "Username is already in use.",
   PROFILE_IMAGE_REQUIRED: "Please provide a profile image.",

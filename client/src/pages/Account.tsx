@@ -39,6 +39,7 @@ const Account = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // update user details
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -62,10 +63,12 @@ const Account = () => {
     }
   };
 
+  // pick image
   const handleImageSelect = () => {
     imageInputRef.current?.click();
   };
 
+  // update profile image
   const handleUpdateProfileImage = async (file: File) => {
     try {
       setIsLoading(true);
@@ -110,8 +113,10 @@ const Account = () => {
     }
   };
 
+  // delete Account
   const handleDeleteAccount = async () => {
     try {
+      setIsLoading(true);
       const token = Cookies.get('token');
       const data: BaseResponse = await UserApis.deleteAccount(token, userDetails._id);
       if (data.status === 'success') {
@@ -141,6 +146,7 @@ const Account = () => {
     }
   };
 
+  // remove profile image
   const handleRemoveProfileImage = async () => {
     try {
       setIsLoading(true);
@@ -331,7 +337,7 @@ const Account = () => {
           <CardContent>
             <Button
               variant="destructive"
-              className="w-full"
+              className={`w-full ${isLoading ? 'opacity-30' : 'opacity-100'}`}
               onClick={handleDeleteAccount}
               disabled={isLoading}
             >

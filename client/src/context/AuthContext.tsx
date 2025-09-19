@@ -42,8 +42,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     (async () => {
       try {
-        setLoading(true);
         const token = Cookies.get('token');
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        setLoading(true);
         const data = await UserApis.me(token);
         if (data.status === 'success') {
           handleAddUser(data.data.user);
