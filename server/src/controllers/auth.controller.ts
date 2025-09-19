@@ -50,15 +50,9 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
     getVerifyLinkWithToken(req, newUser._id.toString())
   );
 
-  // remove password from the response
-  const { password, ...userData } = newUser.toObject();
-  const token = newUser.generateAuthToken();
-
   res.status(201).json({
     status: "success",
     message: SUCCESS_MESSAGES.USER_CREATED,
-    token,
-    data: { user: userData },
   });
 };
 
